@@ -1,0 +1,345 @@
+{
+  "name": "Misinformation Detection - WhatsApp Manual",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "id": "whatsapp-trigger",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "whatsapp-misinformation"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse incoming WhatsApp message\nconst message = $input.item.json.message?.text || $input.item.json.text || '';\n\nreturn [{\n  json: {\n    tweetText: message,\n    output: message,\n    inputSource: 'whatsapp',\n    originalMessage: $input.item.json\n  }\n}];"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "model": "gemini-pro",
+        "options": {
+          "temperature": 0.3
+        },
+        "prompt": "=ROLE: Factual Claim Verifier\n\nINPUT: {{ $json.tweetText }}\n\nPRIMARY MISSION:\nExtract and verify specific factual claims made in the text using authoritative sources.\n\nANALYSIS PROCESS:\n\nStep 1 - Claim Extraction:\n- Identify all verifiable factual claims (names, dates, events, statistics, quotes)\n- Distinguish between opinions and factual assertions\n- Flag claims that are presented as facts but lack specificity\n\nStep 2 - Claim Verification:\nUse the following sources in priority order:\n1. Professional fact-checking sites:\n   - https://www.snopes.com/\n   - https://www.politifact.com/\n   - https://www.factcheck.org/\n   - https://fullfact.org/\n   - https://factcheck.afp.com/\n\n2. Primary sources (for direct verification):\n   - Official government statements/websites\n   - Court documents and legal filings\n   - Academic papers and peer-reviewed research\n   - Original news reports from reputable outlets\n   - Company official statements\n\n3. Reverse image search (if images mentioned):\n   - https://images.google.com/\n   - https://tineye.com/\n\nStep 3 - Evidence Assessment:\n- Multiple credible sources confirm = VERIFIED\n- Multiple credible sources contradict = FALSE\n- Mixed evidence or lack of coverage = UNVERIFIED\n- Claim is too vague to verify = NOT VERIFIABLE\n\nRED FLAGS FOR MISINFORMATION:\n- Extraordinary claims without extraordinary evidence\n- Out-of-context statistics or quotes\n- Misleading temporal framing (\"just happened\" for old events)\n- Manipulated or misattributed images\n- Claims that contradict expert consensus\n- Emotional language designed to provoke rather than inform\n\nCLASSIFICATION CRITERIA:\n- TRUE: All major claims verified by multiple credible sources\n- MOSTLY TRUE: Core claims verified, minor details unverified\n- MIXED: Some claims true, others false or unverified\n- MOSTLY FALSE: Core claims contradicted or unverified\n- FALSE: Major claims definitively contradicted by evidence\n- UNVERIFIABLE: Claims too vague or lacking sufficient information\n\nOUTPUT FORMAT (JSON ONLY):\n{\n  \"verdict\": \"TRUE/MOSTLY_TRUE/MIXED/MOSTLY_FALSE/FALSE/UNVERIFIABLE\",\n  \"confidence\": \"high/medium/low\",\n  \"verified_claims\": [\n    {\n      \"claim\": \"specific claim text\",\n      \"status\": \"verified/false/unverified\",\n      \"evidence\": \"brief explanation\",\n      \"sources\": [\"source1\", \"source2\"]\n    }\n  ],\n  \"overall_assessment\": \"2-3 sentence summary of findings\",\n  \"fact_check_score\": 0-100\n}\n\nIMPORTANT NOTES:\n- Focus on CLAIMS, not opinions or predictions\n- A message can be opinion-heavy but factually accurate\n- Absence of evidence is not evidence of falsehood\n- Be transparent about limitations in verification\n\nRespond ONLY with valid JSON, no other text."
+      },
+      "id": "agent1-fact-check",
+      "name": "Agent 1: Fact Check",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [650, 250],
+      "credentials": {
+        "googleGeminiApi": {
+          "id": "1",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gemini-pro",
+        "options": {
+          "temperature": 0.3
+        },
+        "prompt": "=ROLE: Source Trustworthiness Evaluator (Manual Input Mode)\n\nINPUT TEXT: {{ $json.tweetText }}\n\nNOTE: This is manual input from WhatsApp. No account metadata available.\n\nPRIMARY MISSION:\nAssess the reliability and trustworthiness of any sources mentioned or implied in the text.\n\nANALYSIS PROCESS:\n\nPART A - SOURCE CREDIBILITY ASSESSMENT:\n\nStep 1 - Source Identification:\n- Identify any sources, websites, or organizations mentioned in the text\n- Look for URLs, domain names, news outlets, or attributions\n- If no explicit source, assess the claim type (e.g., \"scientists say\", \"breaking news\")\n\nStep 2 - Source Credibility Check:\nIf sources are mentioned, use these databases:\n1. https://mediabiasfactcheck.com/ (MBFC ratings)\n2. https://www.newsguardtech.com/ (NewsGuard ratings)\n3. https://www.poynter.org/ifcn/ (IFCN verified signatories)\n4. Wikipedia list of fake news websites\n5. Domain age check via WHOIS lookup\n\nStep 3 - Source Classification:\n- HIGH CREDIBILITY: Established media, fact-checked, transparent methodology\n- MEDIUM CREDIBILITY: Known outlet but with bias or mixed record\n- LOW CREDIBILITY: Flagged by fact-checkers, history of misinformation\n- UNKNOWN: No sources mentioned or no available ratings\n\nCREDIBILITY RED FLAGS:\n- Vague attribution (\"they say\", \"sources claim\")\n- No source mentioned for extraordinary claims\n- Domain flagged by MBFC as questionable\n- NewsGuard rating below 60/100\n- Domain mimics legitimate news sites\n- No clear editorial standards\n\nPART B - MESSAGE CHARACTERISTICS:\n\nSince this is manual input with no account data, analyze the message itself:\n\n- Emotional language intensity (high/medium/low)\n- Use of ALL CAPS or excessive punctuation\n- Urgency indicators (\"BREAKING\", \"URGENT\", \"SHARE NOW\")\n- Appeal to fear or outrage\n- Presence of conspiracy theory markers\n- Grammatical quality and coherence\n\nOUTPUT FORMAT (JSON ONLY):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"],\n    \"sources_mentioned\": [\"list any sources found in text\"],\n    \"red_flags\": []\n  },\n  \"message_characteristics\": {\n    \"emotional_intensity\": \"high/medium/low\",\n    \"urgency_markers\": [],\n    \"conspiracy_indicators\": [],\n    \"quality_assessment\": \"professional/casual/poor\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary for decision agent\"\n}\n\nSCORING LOGIC (Manual Mode):\nOverall Trustworthiness = (Source Credibility × 0.70) + (Message Quality × 0.30)\n\nWhere Message Quality considers:\n- Professional presentation = 100\n- Casual but coherent = 70\n- Emotional manipulation present = 40\n- Poor quality with red flags = 10\n\nRespond ONLY with valid JSON, no other text."
+      },
+      "id": "agent2-credibility",
+      "name": "Agent 2: Credibility",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [650, 350],
+      "credentials": {
+        "googleGeminiApi": {
+          "id": "1",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse agent outputs and combine (no Agent 3 for manual flow)\nconst item = $input.item.json;\n\n// Parse JSON responses from agents\nlet agent1Output = {};\nlet agent2Output = {};\n\ntry {\n  agent1Output = typeof item.agent1 === 'string' ? JSON.parse(item.agent1) : item.agent1;\n} catch (e) {\n  agent1Output = { verdict: 'UNVERIFIABLE', confidence: 'low', fact_check_score: 50 };\n}\n\ntry {\n  agent2Output = typeof item.agent2 === 'string' ? JSON.parse(item.agent2) : item.agent2;\n} catch (e) {\n  agent2Output = { overall_trustworthiness_score: 50, source_credibility: { confidence: 'low' } };\n}\n\nreturn [{\n  json: {\n    factCheckOutput: agent1Output,\n    credibilityOutput: agent2Output,\n    accountOutput: null, // No account analysis for manual input\n    originalData: item,\n    inputSource: 'whatsapp'\n  }\n}];"
+      },
+      "id": "combine-agent-outputs",
+      "name": "Combine Agent Outputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.factCheckOutput.confidence }}",
+              "operation": "equals",
+              "value2": "low"
+            },
+            {
+              "value1": "={{ $json.factCheckOutput.verdict }}",
+              "operation": "equals",
+              "value2": "UNVERIFIABLE"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "check-backup-needed",
+      "name": "Check if Backup Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {
+          "temperature": 0.3
+        },
+        "prompt": "=ROLE: Independent Factual Claim Verifier (Second Opinion)\n\nCONTEXT: Primary fact-check agent returned uncertain results.\n\nINPUT: {{ $json.originalData.tweetText }}\n\nPRIMARY AGENT OUTPUT: {{ JSON.stringify($json.factCheckOutput) }}\n\nPRIMARY MISSION:\nProvide independent verification of factual claims using the same methodology but different reasoning approach.\n\nUse the same process as primary agent, but:\n- Approach verification from different angles\n- Consider alternative interpretations of claims\n- Look for sources primary agent might have missed\n- Apply independent judgment on ambiguous cases\n\nOUTPUT FORMAT (JSON ONLY):\n{\n  \"verdict\": \"TRUE/MOSTLY_TRUE/MIXED/MOSTLY_FALSE/FALSE/UNVERIFIABLE\",\n  \"confidence\": \"high/medium/low\",\n  \"verified_claims\": [\n    {\n      \"claim\": \"specific claim text\",\n      \"status\": \"verified/false/unverified\",\n      \"evidence\": \"brief explanation\",\n      \"sources\": [\"source1\", \"source2\"]\n    }\n  ],\n  \"overall_assessment\": \"2-3 sentence summary of findings\",\n  \"fact_check_score\": 0-100,\n  \"backup_notes\": \"What primary agent might have missed\"\n}\n\nRespond ONLY with valid JSON, no other text."
+      },
+      "id": "agent1b-backup-fact-check",
+      "name": "Agent 1B: Backup Fact Check",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1250, 250],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {
+          "temperature": 0.3
+        },
+        "prompt": "=ROLE: Independent Source Trustworthiness Evaluator (Second Opinion)\n\nCONTEXT: Primary credibility agent returned uncertain results. This is manual WhatsApp input.\n\nINPUT TEXT: {{ $json.originalData.tweetText }}\n\nPRIMARY AGENT OUTPUT: {{ JSON.stringify($json.credibilityOutput) }}\n\nPRIMARY MISSION:\nProvide independent assessment of source credibility using the same methodology but different reasoning approach.\n\nUse the same process as primary agent, but:\n- Apply independent judgment on borderline cases\n- Consider alternative interpretations of vague attributions\n- Look for nuances primary agent might have missed\n- Assess message manipulation tactics from different angle\n\nOUTPUT FORMAT (JSON ONLY):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"],\n    \"sources_mentioned\": [],\n    \"red_flags\": []\n  },\n  \"message_characteristics\": {\n    \"emotional_intensity\": \"high/medium/low\",\n    \"urgency_markers\": [],\n    \"conspiracy_indicators\": [],\n    \"quality_assessment\": \"professional/casual/poor\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary for decision agent\",\n  \"backup_notes\": \"What primary agent might have missed\"\n}\n\nRespond ONLY with valid JSON, no other text."
+      },
+      "id": "agent2b-backup-credibility",
+      "name": "Agent 2B: Backup Credibility",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1250, 350],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Average scores if backup agents were triggered\nconst item = $input.item.json;\n\nlet finalFactCheck = item.factCheckOutput;\nlet finalCredibility = item.credibilityOutput;\n\n// If backup agents ran, average the scores\nif (item.agent1b) {\n  const backup1 = typeof item.agent1b === 'string' ? JSON.parse(item.agent1b) : item.agent1b;\n  finalFactCheck.fact_check_score = Math.round(\n    (finalFactCheck.fact_check_score + backup1.fact_check_score) / 2\n  );\n  finalFactCheck.confidence = 'medium'; // Downgrade confidence when agents disagree\n  finalFactCheck.backup_used = true;\n}\n\nif (item.agent2b) {\n  const backup2 = typeof item.agent2b === 'string' ? JSON.parse(item.agent2b) : item.agent2b;\n  finalCredibility.overall_trustworthiness_score = Math.round(\n    (finalCredibility.overall_trustworthiness_score + backup2.overall_trustworthiness_score) / 2\n  );\n  finalCredibility.confidence = 'medium';\n  finalCredibility.backup_used = true;\n}\n\nreturn [{\n  json: {\n    factCheckOutput: finalFactCheck,\n    credibilityOutput: finalCredibility,\n    accountOutput: null, // No account analysis for manual\n    inputSource: 'whatsapp'\n  }\n}];"
+      },
+      "id": "merge-backup-results",
+      "name": "Merge Backup Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "model": "gemini-pro",
+        "options": {
+          "temperature": 0.2
+        },
+        "prompt": "=ROLE: Final Misinformation Risk Assessor (Manual Input Mode)\n\nINPUT:\n- Fact-check results: {{ JSON.stringify($json.factCheckOutput) }}\n- Source credibility results: {{ JSON.stringify($json.credibilityOutput) }}\n- Input source: WhatsApp (manual, no account data)\n\nPRIMARY MISSION:\nSynthesize agent outputs to produce a final misinformation risk classification and actionable recommendation.\n\nDECISION FRAMEWORK:\n\nSTEP 1 - Data Integration:\nCollect scores from previous agents:\n- Fact Check Score: {{ $json.factCheckOutput.fact_check_score }}\n- Source Trustworthiness Score: {{ $json.credibilityOutput.overall_trustworthiness_score }}\n- Account Authenticity Score: N/A (manual input)\n\nSTEP 2 - Weighted Risk Calculation (Manual Mode):\nRisk Score = (Fact Check × 0.65) + (Source Credibility × 0.35)\n\nReasoning:\n- Fact accuracy is most important (65%)\n- Source/message quality matters (35%)\n- No account behavior data available for manual input\n\nSTEP 3 - Risk Classification:\n- HIGH RISK (0-40): Claims FALSE, source LOW credibility or UNKNOWN with red flags\n  Actions: Warn user, provide fact-check links, discourage sharing\n- MEDIUM RISK (41-70): Claims MIXED/UNVERIFIABLE, source MEDIUM credibility\n  Actions: Advise caution, suggest verification before sharing\n- LOW RISK (71-100): Claims TRUE, source HIGH credibility\n  Actions: No warning needed, information appears reliable\n\nSTEP 4 - Contextual Adjustments:\nINCREASE risk if:\n- Public health, elections, or safety topics\n- Emotionally manipulative language detected\n- Urgency markers present (\"SHARE NOW\", \"BREAKING\")\n- Conspiracy theory indicators\n- Vague or no source attribution\n\nDECREASE risk if:\n- Clearly marked as opinion\n- Source is well-established and credible\n- Content is nuanced and balanced\n- No emotional manipulation detected\n\nSTEP 5 - Confidence Assessment:\n- HIGH CONFIDENCE: Both agents agree, clear evidence\n- MEDIUM CONFIDENCE: Some conflicting signals\n- LOW CONFIDENCE: Limited data, ambiguous signals\n\nSPECIAL CASES:\n- Fact FALSE but no source mentioned: HIGH risk (unattributed false claim)\n- Fact TRUE but emotional manipulation: MEDIUM risk (true but misleading framing)\n- Fact UNVERIFIABLE and no source: MEDIUM-HIGH risk (unverifiable claim)\n- Both agents LOW confidence: Flag uncertainty in response\n\nOUTPUT FORMAT (JSON ONLY):\n{\n  \"final_assessment\": {\n    \"risk_level\": \"HIGH/MEDIUM/LOW\",\n    \"composite_score\": 0-100,\n    \"confidence\": \"HIGH/MEDIUM/LOW\"\n  },\n  \"contributing_factors\": {\n    \"fact_check_verdict\": \"from agent 1\",\n    \"fact_check_score\": 0,\n    \"source_credibility\": \"from agent 2\",\n    \"source_score\": 0\n  },\n  \"key_concerns\": [\n    \"List 2-3 most important red flags\"\n  ],\n  \"mitigating_factors\": [\n    \"List any factors that reduce concern\"\n  ],\n  \"recommended_action\": {\n    \"primary_action\": \"specific recommendation for user\",\n    \"rationale\": \"why this action\",\n    \"user_guidance\": \"What to tell the WhatsApp user\"\n  },\n  \"verification_links\": [\n    \"Suggest fact-checking sites to verify\"\n  ],\n  \"summary\": \"1-2 sentence plain-language explanation for the user\"\n}\n\nRespond ONLY with valid JSON, no other text."
+      },
+      "id": "agent4-decision",
+      "name": "Agent 4: Decision",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1650, 300],
+      "credentials": {
+        "googleGeminiApi": {
+          "id": "1",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format response for WhatsApp user\nconst result = $input.item.json;\nlet decision = {};\n\ntry {\n  decision = typeof result === 'string' ? JSON.parse(result) : result;\n} catch (e) {\n  decision = result;\n}\n\nconst riskLevel = decision.final_assessment?.risk_level || 'UNKNOWN';\nconst summary = decision.summary || 'Unable to assess this claim.';\nconst action = decision.recommended_action?.user_guidance || 'Please verify before sharing.';\n\n// Create user-friendly message\nlet emoji = '⚠️';\nif (riskLevel === 'HIGH') emoji = '🚨';\nif (riskLevel === 'LOW') emoji = '✅';\n\nconst message = `${emoji} *Misinformation Check Result*\\n\\n` +\n  `*Risk Level:* ${riskLevel}\\n\\n` +\n  `*Summary:* ${summary}\\n\\n` +\n  `*Recommendation:* ${action}`;\n\nreturn [{\n  json: {\n    message: message,\n    fullResult: decision\n  }\n}];"
+      },
+      "id": "format-whatsapp-response",
+      "name": "Format WhatsApp Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.originalMessage.from }}",
+        "text": "={{ $json.message }}"
+      },
+      "id": "send-whatsapp-reply",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [2050, 300],
+      "credentials": {
+        "whatsAppApi": {
+          "id": "3",
+          "name": "WhatsApp Business API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Agent 1: Fact Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 2: Credibility",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1: Fact Check": {
+      "main": [
+        [
+          {
+            "node": "Combine Agent Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2: Credibility": {
+      "main": [
+        [
+          {
+            "node": "Combine Agent Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Agent Outputs": {
+      "main": [
+        [
+          {
+            "node": "Check if Backup Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Backup Needed": {
+      "main": [
+        [
+          {
+            "node": "Agent 1B: Backup Fact Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 2B: Backup Credibility",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent 4: Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1B: Backup Fact Check": {
+      "main": [
+        [
+          {
+            "node": "Merge Backup Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2B: Backup Credibility": {
+      "main": [
+        [
+          {
+            "node": "Merge Backup Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Backup Results": {
+      "main": [
+        [
+          {
+            "node": "Agent 4: Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 4: Decision": {
+      "main": [
+        [
+          {
+            "node": "Format WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format WhatsApp Response": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-02T00:00:00.000Z",
+  "versionId": "1"
+}
