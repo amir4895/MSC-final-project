@@ -78,7 +78,7 @@
       "parameters": {
         "agent": "conversationalAgent",
         "promptType": "define",
-        "text": "=ROLE: Source Trustworthiness Evaluator\n\nINPUT:\n- Tweet source/domain: {{ $json.tweetSource }}\n- Tweet metadata: {{ $json.tweetMetadata }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAssess the reliability and trustworthiness of the information source and detect potential bot behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf tweetSource is 'N/A' or metadata is empty (WhatsApp/manual input):\n- Set source_credibility rating to 'UNKNOWN'\n- Set source_credibility score to 50 (neutral)\n- Skip bot behavior detection\n- Set bot_likelihood assessment to 'NOT_APPLICABLE'\n- Set overall_trustworthiness_score to 50\n- Note in recommendation: 'Source verification not available - manual/WhatsApp input'\n- Return the JSON structure with these default values\n\nANALYSIS PROCESS (only if Twitter data available):\n\nPART A - SOURCE CREDIBILITY ASSESSMENT:\n\nStep 1 - Domain/Source Identification:\n- Extract domain or news source mentioned in tweet\n- Identify if tweet links to external source or is original claim\n\nStep 2 - Source Credibility Check:\nUse these databases in order:\n1. https://mediabiasfactcheck.com/ (MBFC ratings)\n2. https://www.newsguardtech.com/ (NewsGuard ratings)\n3. https://www.poynter.org/ifcn/ (IFCN verified signatories)\n4. Wikipedia list of fake news websites\n5. Domain age check via WHOIS lookup\n\nStep 3 - Source Classification:\n- HIGH CREDIBILITY: Established media, fact-checked, transparent methodology\n- MEDIUM CREDIBILITY: Known outlet but with bias or mixed record\n- LOW CREDIBILITY: Flagged by fact-checkers, history of misinformation\n- UNKNOWN: No available ratings, new or obscure source\n\nCREDIBILITY RED FLAGS:\n- Domain flagged by MBFC as \"questionable source\" or \"low credibility\"\n- NewsGuard rating below 60/100\n- Domain created recently (less than 1 year old)\n- Mimics legitimate news site names\n- No clear editorial standards or correction policy\n- History of publishing debunked claims\n\nPART B - BOT BEHAVIOR DETECTION:\n\nAccount Age Signals:\n- SUSPICIOUS: Account less than 30 days old\n- CAUTION: Account 30-90 days old\n- NORMAL: Account older than 90 days\n\nTweet Frequency Analysis:\n- Calculate: tweets per day ratio\n- SUSPICIOUS: >50 tweets per day consistently\n- CAUTION: 20-50 tweets per day\n- NORMAL: <20 tweets per day\n\nProfile Completeness Check:\n- Profile picture present? (1 point)\n- Bio/description present? (1 point)\n- Location specified? (1 point)\n- Verified account? (2 points)\n- Custom header image? (1 point)\n- SCORE: 0-1 = Incomplete, 2-3 = Partial, 4-6 = Complete\n\nBot Behavior Heuristics:\n- Repetitive posting patterns\n- Generic or nonsensical username\n- No original content, only retweets\n- Engagement ratio imbalance\n- Amplification of known misinformation sources\n\nOUTPUT FORMAT (JSON only):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN/NOT_APPLICABLE\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"] or [],\n    \"red_flags\": [\"list issues\"] or []\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK/MODERATE_RISK/LOW_RISK/HUMAN_LIKELY/NOT_APPLICABLE\",\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [\"list behaviors\"] or [],\n    \"confidence\": \"high/medium/low/not_applicable\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nOverall Trustworthiness = (Source Credibility × 0.6) + (Bot Assessment × 0.4)\n\nBot Assessment scores:\n- Human-likely = 100\n- Low bot risk = 75\n- Moderate bot risk = 40\n- High bot risk = 10\n- Not applicable = 50\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=ROLE: Source Trustworthiness Evaluator\n\nINPUT:\n- Tweet source/domain: {{ $json.tweetSource }}\n- Tweet metadata: {{ $json.tweetMetadata }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAssess the reliability and trustworthiness of the information source and detect potential bot behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf tweetSource is 'N/A' or metadata is empty (dataset/manual input):\n- Set source_credibility rating to 'UNKNOWN'\n- Set source_credibility score to 50 (neutral)\n- Skip bot behavior detection\n- Set bot_likelihood assessment to 'NOT_APPLICABLE'\n- Set overall_trustworthiness_score to 50\n- Note in recommendation: 'Source verification not available - dataset/manual input'\n- Return the JSON structure with these default values\n\nANALYSIS PROCESS (only if Twitter data available):\n\nPART A - SOURCE CREDIBILITY ASSESSMENT:\n\nStep 1 - Domain/Source Identification:\n- Extract domain or news source mentioned in tweet\n- Identify if tweet links to external source or is original claim\n\nStep 2 - Source Credibility Check:\nUse these databases in order:\n1. https://mediabiasfactcheck.com/ (MBFC ratings)\n2. https://www.newsguardtech.com/ (NewsGuard ratings)\n3. https://www.poynter.org/ifcn/ (IFCN verified signatories)\n4. Wikipedia list of fake news websites\n5. Domain age check via WHOIS lookup\n\nStep 3 - Source Classification:\n- HIGH CREDIBILITY: Established media, fact-checked, transparent methodology\n- MEDIUM CREDIBILITY: Known outlet but with bias or mixed record\n- LOW CREDIBILITY: Flagged by fact-checkers, history of misinformation\n- UNKNOWN: No available ratings, new or obscure source\n\nCREDIBILITY RED FLAGS:\n- Domain flagged by MBFC as \"questionable source\" or \"low credibility\"\n- NewsGuard rating below 60/100\n- Domain created recently (less than 1 year old)\n- Mimics legitimate news site names\n- No clear editorial standards or correction policy\n- History of publishing debunked claims\n\nPART B - BOT BEHAVIOR DETECTION:\n\nAccount Age Signals:\n- SUSPICIOUS: Account less than 30 days old\n- CAUTION: Account 30-90 days old\n- NORMAL: Account older than 90 days\n\nTweet Frequency Analysis:\n- Calculate: tweets per day ratio\n- SUSPICIOUS: >50 tweets per day consistently\n- CAUTION: 20-50 tweets per day\n- NORMAL: <20 tweets per day\n\nProfile Completeness Check:\n- Profile picture present? (1 point)\n- Bio/description present? (1 point)\n- Location specified? (1 point)\n- Verified account? (2 points)\n- Custom header image? (1 point)\n- SCORE: 0-1 = Incomplete, 2-3 = Partial, 4-6 = Complete\n\nBot Behavior Heuristics:\n- Repetitive posting patterns\n- Generic or nonsensical username\n- No original content, only retweets\n- Engagement ratio imbalance\n- Amplification of known misinformation sources\n\nOUTPUT FORMAT (JSON only):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN/NOT_APPLICABLE\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"] or [],\n    \"red_flags\": [\"list issues\"] or []\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK/MODERATE_RISK/LOW_RISK/HUMAN_LIKELY/NOT_APPLICABLE\",\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [\"list behaviors\"] or [],\n    \"confidence\": \"high/medium/low/not_applicable\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nOverall Trustworthiness = (Source Credibility × 0.6) + (Bot Assessment × 0.4)\n\nBot Assessment scores:\n- Human-likely = 100\n- Low bot risk = 75\n- Moderate bot risk = 40\n- High bot risk = 10\n- Not applicable = 50\n\nReturn ONLY valid JSON, no additional text.",
         "options": {
           "systemMessage": "You are a source credibility analyst. Always return valid JSON output only. Handle missing data gracefully."
         }
@@ -93,7 +93,7 @@
       "parameters": {
         "agent": "conversationalAgent",
         "promptType": "define",
-        "text": "=ROLE: Twitter Account Behavior Analyst\n\nINPUT:\n- Account data: {{ $json.accountData }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAnalyze Twitter account behavior patterns to identify automated, suspicious, or coordinated inauthentic behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf accountData is empty or sourceType is not 'twitter' (WhatsApp/manual input):\n- Set all account_analysis fields to 'NOT_APPLICABLE' or 0\n- Set bot_probability to 'NOT_APPLICABLE'\n- Set authenticity_score to 50 (neutral)\n- Note in recommendation: 'Account analysis not available - manual/WhatsApp input'\n- Return the JSON structure with these default values\n\nANALYSIS FRAMEWORK (only if Twitter data available):\n\nMETRIC 1 - Account Age Analysis:\n- Calculate: Days since account creation\n- RISK LEVELS:\n  * <7 days = VERY HIGH RISK\n  * 7-30 days = HIGH RISK\n  * 31-90 days = MODERATE RISK\n  * 91-365 days = LOW RISK\n  * >365 days = MINIMAL RISK\n\nMETRIC 2 - Tweet Frequency Analysis:\n- Calculate: Total tweets / Account age in days = tweets_per_day\n- RISK LEVELS:\n  * >100 tweets/day = VERY HIGH RISK\n  * 50-100 tweets/day = HIGH RISK\n  * 20-49 tweets/day = MODERATE RISK\n  * 10-19 tweets/day = LOW RISK\n  * <10 tweets/day = MINIMAL RISK\n\nMETRIC 3 - Profile Completeness Score:\n- Profile picture = 1 point\n- Bio/description = 1 point\n- Location = 1 point\n- Verified badge = 2 points\n- Custom header = 1 point\n- Website/link = 1 point\nTOTAL: X/7 points\n- 6-7 = COMPLETE (low risk)\n- 4-5 = PARTIAL (moderate risk)\n- 2-3 = MINIMAL (high risk)\n- 0-1 = INCOMPLETE (very high risk)\n\nMETRIC 4 - Follower/Following Ratio:\n- Calculate: follower_count / following_count\n- ANALYSIS:\n  * Ratio >10 = Influential/Popular\n  * Ratio 0.1-10 = Balanced\n  * Ratio <0.1 AND following >1000 = Spam pattern\n  * Ratio >100 AND followers <500 = Suspicious\n\nMETRIC 5 - Content Pattern Analysis:\n- Repetitive content\n- Excessive hashtags (>5 per tweet)\n- Only retweets, no original content\n- Links to suspicious domains\n- Coordinated timing\n- Generic engagement farming\n\nBEHAVIORAL RED FLAGS:\n- Recently created but tweeting excessively\n- Profile mostly incomplete\n- Random username (e.g., user74839201)\n- No bio or generic bio\n- Extreme follower ratio imbalance\n- Repetitive or automated content\n- Only controversial topics\n- Part of coordinated network\n\nOUTPUT FORMAT (JSON only):\n{\n  \"account_analysis\": {\n    \"handle\": \"@username\" or \"N/A\",\n    \"account_age_days\": 0,\n    \"account_age_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"tweets_per_day\": 0.0,\n    \"frequency_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"profile_completeness\": {\n      \"score\": \"0/7\",\n      \"rating\": \"COMPLETE/PARTIAL/MINIMAL/INCOMPLETE/NOT_APPLICABLE\",\n      \"missing_elements\": [\"list\"] or []\n    },\n    \"follower_ratio\": 0.0,\n    \"follower_analysis\": \"interpretation\",\n    \"content_patterns\": {\n      \"repetitive_content\": false,\n      \"original_vs_retweets\": \"0% original\",\n      \"suspicious_patterns\": [\"list\"] or []\n    }\n  },\n  \"behavioral_red_flags\": [\"list all\"] or [],\n  \"bot_probability\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n  \"authenticity_score\": 0-100,\n  \"recommendation\": \"Brief assessment\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nAuthenticity Score = weighted average:\n- Account age (25%)\n- Tweet frequency (20%)\n- Profile completeness (25%)\n- Follower patterns (15%)\n- Content patterns (15%)\n\nIf data not available: authenticity_score = 50 (neutral)\n\nNOTES:\n- Journalists/activists may have high frequency\n- Verified accounts get credibility boost\n- New accounts aren't automatically suspicious\n- Consider cultural context\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=ROLE: Twitter Account Behavior Analyst\n\nINPUT:\n- Account data: {{ $json.accountData }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAnalyze Twitter account behavior patterns to identify automated, suspicious, or coordinated inauthentic behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf accountData is empty or sourceType is not 'twitter' (dataset/manual input):\n- Set all account_analysis fields to 'NOT_APPLICABLE' or 0\n- Set bot_probability to 'NOT_APPLICABLE'\n- Set authenticity_score to 50 (neutral)\n- Note in recommendation: 'Account analysis not available - dataset/manual input'\n- Return the JSON structure with these default values\n\nANALYSIS FRAMEWORK (only if Twitter data available):\n\nMETRIC 1 - Account Age Analysis:\n- Calculate: Days since account creation\n- RISK LEVELS:\n  * <7 days = VERY HIGH RISK\n  * 7-30 days = HIGH RISK\n  * 31-90 days = MODERATE RISK\n  * 91-365 days = LOW RISK\n  * >365 days = MINIMAL RISK\n\nMETRIC 2 - Tweet Frequency Analysis:\n- Calculate: Total tweets / Account age in days = tweets_per_day\n- RISK LEVELS:\n  * >100 tweets/day = VERY HIGH RISK\n  * 50-100 tweets/day = HIGH RISK\n  * 20-49 tweets/day = MODERATE RISK\n  * 10-19 tweets/day = LOW RISK\n  * <10 tweets/day = MINIMAL RISK\n\nMETRIC 3 - Profile Completeness Score:\n- Profile picture = 1 point\n- Bio/description = 1 point\n- Location = 1 point\n- Verified badge = 2 points\n- Custom header = 1 point\n- Website/link = 1 point\nTOTAL: X/7 points\n- 6-7 = COMPLETE (low risk)\n- 4-5 = PARTIAL (moderate risk)\n- 2-3 = MINIMAL (high risk)\n- 0-1 = INCOMPLETE (very high risk)\n\nMETRIC 4 - Follower/Following Ratio:\n- Calculate: follower_count / following_count\n- ANALYSIS:\n  * Ratio >10 = Influential/Popular\n  * Ratio 0.1-10 = Balanced\n  * Ratio <0.1 AND following >1000 = Spam pattern\n  * Ratio >100 AND followers <500 = Suspicious\n\nMETRIC 5 - Content Pattern Analysis:\n- Repetitive content\n- Excessive hashtags (>5 per tweet)\n- Only retweets, no original content\n- Links to suspicious domains\n- Coordinated timing\n- Generic engagement farming\n\nBEHAVIORAL RED FLAGS:\n- Recently created but tweeting excessively\n- Profile mostly incomplete\n- Random username (e.g., user74839201)\n- No bio or generic bio\n- Extreme follower ratio imbalance\n- Repetitive or automated content\n- Only controversial topics\n- Part of coordinated network\n\nOUTPUT FORMAT (JSON only):\n{\n  \"account_analysis\": {\n    \"handle\": \"@username\" or \"N/A\",\n    \"account_age_days\": 0,\n    \"account_age_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"tweets_per_day\": 0.0,\n    \"frequency_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"profile_completeness\": {\n      \"score\": \"0/7\",\n      \"rating\": \"COMPLETE/PARTIAL/MINIMAL/INCOMPLETE/NOT_APPLICABLE\",\n      \"missing_elements\": [\"list\"] or []\n    },\n    \"follower_ratio\": 0.0,\n    \"follower_analysis\": \"interpretation\",\n    \"content_patterns\": {\n      \"repetitive_content\": false,\n      \"original_vs_retweets\": \"0% original\",\n      \"suspicious_patterns\": [\"list\"] or []\n    }\n  },\n  \"behavioral_red_flags\": [\"list all\"] or [],\n  \"bot_probability\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n  \"authenticity_score\": 0-100,\n  \"recommendation\": \"Brief assessment\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nAuthenticity Score = weighted average:\n- Account age (25%)\n- Tweet frequency (20%)\n- Profile completeness (25%)\n- Follower patterns (15%)\n- Content patterns (15%)\n\nIf data not available: authenticity_score = 50 (neutral)\n\nNOTES:\n- Journalists/activists may have high frequency\n- Verified accounts get credibility boost\n- New accounts aren't automatically suspicious\n- Consider cultural context\n\nReturn ONLY valid JSON, no additional text.",
         "options": {
           "systemMessage": "You are a Twitter account behavior analyst. Always return valid JSON output only. Handle missing data gracefully."
         }
@@ -397,19 +397,25 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// Format Supabase data to match Twitter input structure\nconst supabaseData = $input.item.json;\n\n// Extract the actual row data (Supabase returns array)\nconst row = Array.isArray(supabaseData) ? supabaseData[0] : supabaseData;\n\nreturn {\n  json: {\n    text: row.text || '',\n    tweetText: row.text || '',\n    tweetSource: row.title || 'Manual WhatsApp Input',\n    sourceType: 'whatsapp',\n    tweetMetadata: {},\n    accountData: {},\n    // Keep original Supabase fields for reference\n    supabase_id: row.id,\n    subject: row.subject || '',\n    date: row.date || ''\n  }\n};"
+        "promptType": "define",
+        "text": "=Use the supabase tool to get the data from the dataset.\n\nInput context:\n- Dataset: {{ $json.dataset }}\n- Dataset Type: {{ $json.datasetType }}\n- ID: {{ $json.idx }}\n\nFormat the output as JSON with this structure:\n{\n  \"text\": \"the text field from supabase\",\n  \"tweetText\": \"same as text\",\n  \"tweetSource\": \"{{ $json.dataset }}\",\n  \"sourceType\": \"dataset\",\n  \"tweetMetadata\": {},\n  \"accountData\": {},\n  \"supabase_id\": {{ $json.idx }},\n  \"dataset\": \"{{ $json.dataset }}\",\n  \"datasetType\": \"{{ $json.datasetType }}\",\n  \"title\": \"title field from supabase if exists\",\n  \"subject\": \"subject field from supabase if exists\",\n  \"date\": \"date field from supabase if exists\"\n}\n\nReturn ONLY valid JSON, no additional text.",
+        "options": {
+          "systemMessage": "You are a data formatting assistant. Extract data from Supabase and format it as specified JSON structure. Return only valid JSON."
+        }
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
       "position": [-1328, -432],
       "id": "98bd947f-6902-4428-a4bc-a443078efed6",
-      "name": "Format WhatsApp Data"
+      "name": "AI Agent1",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "notesInFlow": false
     },
     {
       "parameters": {
         "operation": "get",
-        "tableId": "false-news",
+        "tableId": "={{ $json.dataset }}",
         "filters": {
           "conditions": [
             {
@@ -419,11 +425,12 @@
           ]
         }
       },
-      "type": "n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabaseTool",
       "typeVersion": 1,
-      "position": [-1520, -432],
+      "position": [-1184, -208],
       "id": "3fba3b07-2484-4497-b57a-ae39f98ea09f",
-      "name": "Get a row in Supabase",
+      "name": "Get row from Dataset (Supabase)",
+      "notesInFlow": false,
       "credentials": {
         "supabaseApi": {
           "id": "Cgrz5nOdspcCgDyr",
@@ -433,8 +440,26 @@
     },
     {
       "parameters": {
+        "options": {
+          "maxOutputTokens": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-1328, -192],
+      "id": "409ad288-170c-48db-acc1-82ddc8a84ca4",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MLCxKRnMtF7Rthld",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const item = $input.item;\nconst body = item.json.messages?.[0]?.text?.body;\n\nreturn {\n  json: {\n    idx: Number(body) || 600,\n  },\n};"
+        "jsCode": "const item = $input.item;\nconst body = item.json.messages?.[0]?.text?.body || 'F600';\n\n// Extract dataset type (T or F) and index\nconst datasetType = body.charAt(0).toUpperCase();\nconst idx = parseInt(body.substring(1)) || 600;\n\nreturn {\n  json: {\n    datasetType: datasetType,\n    idx: idx,\n    dataset: datasetType === 'T' ? 'true-news' : 'false-news'\n  },\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -444,8 +469,7 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
+        "mode": "append",
         "options": {}
       },
       "id": "364f08c6-e0ca-4dbd-8aef-9d137b7006e5",
@@ -457,7 +481,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Format data for Parse Input Data node\nconst item = $input.item.json;\n\n// Check if this is WhatsApp data or Twitter data\nconst isWhatsApp = item.output || item.text;\nconst isTwitter = item.body;\n\nif (isWhatsApp) {\n  // WhatsApp flow - extract text from AI Agent output\n  const text = item.output || item.text || '';\n  return {\n    json: {\n      tweetText: text,\n      tweetSource: 'N/A',\n      tweetMetadata: {},\n      accountData: {},\n      sourceType: 'whatsapp'\n    }\n  };\n} else if (isTwitter) {\n  // Twitter flow - pass through with proper structure\n  return {\n    json: {\n      tweetText: item.body.tweetText || '',\n      tweetSource: item.body.tweetSource || 'N/A',\n      tweetMetadata: item.body.tweetMetadata || {},\n      accountData: item.body.accountData || {},\n      sourceType: 'twitter'\n    }\n  };\n} else {\n  // Fallback - treat as text input\n  return {\n    json: {\n      tweetText: JSON.stringify(item),\n      tweetSource: 'N/A',\n      tweetMetadata: {},\n      accountData: {},\n      sourceType: 'manual'\n    }\n  };\n}"
+        "jsCode": "// Format data for Parse Input Data node\nconst item = $input.item.json;\n\n// Check if this is Dataset data or Twitter data\nconst isDataset = item.dataset || item.text || item.tweetText;\nconst isTwitter = item.body;\n\nif (isDataset) {\n  // Dataset flow - data already formatted by AI Agent1\n  return {\n    json: {\n      tweetText: item.tweetText || item.text || '',\n      tweetSource: item.tweetSource || item.dataset || 'N/A',\n      tweetMetadata: item.tweetMetadata || {},\n      accountData: item.accountData || {},\n      sourceType: item.sourceType || 'dataset',\n      supabase_id: item.supabase_id,\n      dataset: item.dataset,\n      datasetType: item.datasetType,\n      title: item.title,\n      subject: item.subject,\n      date: item.date\n    }\n  };\n} else if (isTwitter) {\n  // Twitter flow - pass through with proper structure\n  return {\n    json: {\n      tweetText: item.body.tweetText || '',\n      tweetSource: item.body.tweetSource || 'N/A',\n      tweetMetadata: item.body.tweetMetadata || {},\n      accountData: item.body.accountData || {},\n      sourceType: 'twitter'\n    }\n  };\n} else {\n  // Fallback - treat as text input\n  return {\n    json: {\n      tweetText: JSON.stringify(item),\n      tweetSource: 'N/A',\n      tweetMetadata: {},\n      accountData: {},\n      sourceType: 'manual'\n    }\n  };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -723,12 +747,12 @@
         ]
       ]
     },
-    "Get a row in Supabase": {
-      "main": [
+    "Get row from Dataset (Supabase)": {
+      "ai_tool": [
         [
           {
-            "node": "Format WhatsApp Data",
-            "type": "main",
+            "node": "AI Agent1",
+            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -738,14 +762,25 @@
       "main": [
         [
           {
-            "node": "Get a row in Supabase",
+            "node": "AI Agent1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Format WhatsApp Data": {
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
       "main": [
         [
           {

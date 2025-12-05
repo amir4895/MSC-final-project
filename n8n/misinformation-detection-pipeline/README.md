@@ -41,13 +41,15 @@
 ## 🎯 What This Does
 
 A **multi-agent AI system** that detects misinformation in:
-- **WhatsApp messages** (manual input - currently active)
+- **Dataset messages** (manual input via WhatsApp - currently active)
+  - Supports both **true-news** and **false-news** datasets
+  - Input format: `T123` (true-news) or `F456` (false-news)
 - **Twitter/X tweets** (webhook - ready for testing)
 
 ### How It Works:
 
 ```
-Input (WhatsApp/Twitter)
+Input (Dataset/Twitter)
     ↓
 6 AI Agents analyze in parallel
     ↓
@@ -76,13 +78,15 @@ Detailed JSON report
 
 ## 🔄 Workflow Flow
 
-### WhatsApp Flow (Active):
+### Dataset Flow (Active):
 ```
-WhatsApp Message (ID number)
+WhatsApp Message (e.g., "T123" or "F456")
     ↓
-Fetch from Supabase ("false-news" table)
+Parse: Dataset type (T/F) + Index (123)
     ↓
-Format to unified structure
+Fetch from Supabase ("true-news" or "false-news" table)
+    ↓
+AI Agent formats to unified structure
     ↓
 Agents 1, 2, 3 analyze (parallel)
     ↓
@@ -125,15 +129,16 @@ Return risk assessment
 
 | Flow | Without Backups | With Backups |
 |------|----------------|--------------|
-| **WhatsApp** | ~$0.003 | ~$0.018 |
+| **Dataset** | ~$0.008 | ~$0.023 |
 | **Twitter** | ~$0.015 | ~$0.085 |
 
 **Monthly (1000 messages):**
-- WhatsApp: $3-18
+- Dataset: $8-23
 - Twitter: $15-85
-- Mixed: $9-50
+- Mixed: $11-54
 
-*Using Groq free tier can reduce costs to near-zero for primary agents*
+*Note: Dataset flow uses AI Agent for formatting, slightly higher cost than direct code*  
+*Using Groq free tier can reduce costs significantly for primary agents*
 
 ---
 
@@ -159,7 +164,7 @@ Workflows → Import from File → workflow-twitter-whatsapp-combined.json
 - WhatsApp Business API
 
 ### 4. Test:
-Send WhatsApp message with ID number (e.g., "600")
+Send WhatsApp message with dataset + ID (e.g., "T123" or "F456")
 
 **Full instructions:** See [QUICK_START.md](QUICK_START.md)
 
@@ -201,9 +206,23 @@ Send WhatsApp message with ID number (e.g., "600")
 
 ## 🗄️ Data Structure
 
-### Supabase Table: "false-news"
+### Supabase Tables:
+
+**Table 1: False News Dataset**
 ```sql
 CREATE TABLE "false-news" (
+  id INTEGER PRIMARY KEY,
+  text TEXT NOT NULL,
+  title TEXT,
+  subject TEXT,
+  date TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Table 2: True News Dataset**
+```sql
+CREATE TABLE "true-news" (
   id INTEGER PRIMARY KEY,
   text TEXT NOT NULL,
   title TEXT,
@@ -217,10 +236,14 @@ CREATE TABLE "false-news" (
 ```javascript
 {
   tweetText: "content to analyze",
-  tweetSource: "source URL or title",
-  sourceType: "whatsapp" | "twitter",
+  tweetSource: "dataset name or URL",
+  sourceType: "dataset" | "twitter",
   tweetMetadata: {},  // Twitter only
-  accountData: {}     // Twitter only
+  accountData: {},    // Twitter only
+  // Dataset-specific fields
+  dataset: "true-news" | "false-news",
+  datasetType: "T" | "F",
+  supabase_id: 123
 }
 ```
 
@@ -248,16 +271,19 @@ CREATE TABLE "false-news" (
 ## 🔧 Recent Updates (Dec 5, 2025)
 
 ### What Changed:
-- ✅ Removed redundant AI Agent for WhatsApp data extraction
-- ✅ Replaced with simple JavaScript code node
-- ✅ Unified input format for both WhatsApp and Twitter
-- ✅ 60% cost reduction for WhatsApp flow
+- ✅ Added dual dataset support (true-news + false-news)
+- ✅ WhatsApp input format: T123 (true) or F456 (false)
+- ✅ Dynamic Supabase routing based on dataset type
+- ✅ AI Agent formats data with dataset metadata
+- ✅ Changed terminology: WhatsApp → Dataset throughout
+- ✅ Unified input format for both Dataset and Twitter
 - ✅ Cleaned up documentation (removed 10 duplicate files)
 
 ### Why:
-- AI Agent was using expensive LLM call for simple data formatting
-- JavaScript is faster, cheaper, and more reliable
-- Simpler workflow with fewer dependencies
+- Support testing with both true and false news datasets
+- Track which dataset each message comes from
+- Enable comparison of detection accuracy across datasets
+- More accurate terminology (data comes from datasets, not WhatsApp)
 
 ---
 
