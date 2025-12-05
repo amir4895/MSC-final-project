@@ -397,17 +397,14 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "Extract the text content from the Supabase query result and return it in a clean format.",
-        "options": {
-          "systemMessage": "You are a data extraction assistant. Extract and return only the text field from the database result."
-        }
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Format Supabase data to match Twitter input structure\nconst supabaseData = $input.item.json;\n\n// Extract the actual row data (Supabase returns array)\nconst row = Array.isArray(supabaseData) ? supabaseData[0] : supabaseData;\n\nreturn {\n  json: {\n    text: row.text || '',\n    tweetText: row.text || '',\n    tweetSource: row.title || 'Manual WhatsApp Input',\n    sourceType: 'whatsapp',\n    tweetMetadata: {},\n    accountData: {},\n    // Keep original Supabase fields for reference\n    supabase_id: row.id,\n    subject: row.subject || '',\n    date: row.date || ''\n  }\n};"
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [-1328, -432],
       "id": "98bd947f-6902-4428-a4bc-a443078efed6",
-      "name": "AI Agent1"
+      "name": "Format WhatsApp Data"
     },
     {
       "parameters": {
@@ -422,9 +419,9 @@
           ]
         }
       },
-      "type": "n8n-nodes-base.supabaseTool",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [-1184, -208],
+      "position": [-1520, -432],
       "id": "3fba3b07-2484-4497-b57a-ae39f98ea09f",
       "name": "Get a row in Supabase",
       "credentials": {
@@ -444,24 +441,6 @@
       "position": [-1616, -432],
       "id": "4bd742a4-8a72-429e-918d-5832b859a116",
       "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "options": {
-          "maxOutputTokens": 1000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [-1328, -192],
-      "id": "409ad288-170c-48db-acc1-82ddc8a84ca4",
-      "name": "Google Gemini Chat Model3",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "MLCxKRnMtF7Rthld",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
     },
     {
       "parameters": {
@@ -745,11 +724,11 @@
       ]
     },
     "Get a row in Supabase": {
-      "ai_tool": [
+      "main": [
         [
           {
-            "node": "AI Agent1",
-            "type": "ai_tool",
+            "node": "Format WhatsApp Data",
+            "type": "main",
             "index": 0
           }
         ]
@@ -759,25 +738,14 @@
       "main": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Get a row in Supabase",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model3": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent1",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent1": {
+    "Format WhatsApp Data": {
       "main": [
         [
           {

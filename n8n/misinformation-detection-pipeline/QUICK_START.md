@@ -1,231 +1,420 @@
-# Quick Start Guide - 5 Minutes to Running
+# Quick Start Guide - 5 Minutes
 
 Get your misinformation detection pipeline running in 5 minutes!
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
-✅ N8N installed and running (http://localhost:5678)  
-✅ Google Gemini API key  
-✅ OpenAI API key (or Claude)
-
----
-
-## Step 1: Get API Keys (2 minutes)
-
-### Google Gemini
-1. Go to: https://makersuite.google.com/app/apikey
-2. Click "Get API Key"
-3. Copy the key
-
-### OpenAI
-1. Go to: https://platform.openai.com/api-keys
-2. Create new secret key
-3. Copy the key
+- n8n installed and running
+- 5 minutes of your time
 
 ---
 
-## Step 2: Add Credentials to N8N (1 minute)
+## 🚀 Step 1: Install n8n (if needed)
 
-1. Open N8N → **Settings** → **Credentials**
-2. Click **Add Credential**
-3. Add "Google Gemini" → Paste API key → Name: "Google Gemini API" → Save
-4. Add "OpenAI" → Paste API key → Name: "OpenAI API" → Save
-
----
-
-## Step 3: Import Workflows (1 minute)
-
-1. In N8N, go to **Workflows** → **Import from File**
-2. Import `workflow-twitter-webhook.json`
-3. Import `workflow-whatsapp-manual.json` (optional)
-
----
-
-## Step 4: Activate & Test (1 minute)
-
-### For Twitter Webhook:
-
-1. Open "Misinformation Detection - Twitter Webhook" workflow
-2. Toggle **Active** switch (top right)
-3. Click "Webhook Trigger" node → Copy webhook URL
-4. Test with curl:
-
+### Option A: Using npm
 ```bash
-curl -X POST YOUR_WEBHOOK_URL \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tweets": [{
-      "tweetText": "Breaking: Scientists discover cure for common cold",
-      "tweetSource": "https://example.com",
-      "tweetMetadata": {
-        "account_handle": "@testuser",
-        "account_created_date": "2020-01-15",
-        "follower_count": 5000,
-        "following_count": 500,
-        "tweet_count": 12000,
-        "bio": "Science journalist",
-        "verified": false
-      }
-    }]
-  }'
+npm install n8n -g
+n8n start
 ```
 
-### For WhatsApp Manual:
+### Option B: Using Docker
+```bash
+docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -v ~/.n8n:/home/node/.n8n \
+  n8nio/n8n
+```
 
-1. Configure WhatsApp credentials first (see SETUP_GUIDE.md)
-2. Open "Misinformation Detection - WhatsApp Manual" workflow
-3. Toggle **Active** switch
-4. Send a test message to your WhatsApp number
+Access n8n at: **http://localhost:5678**
 
 ---
 
-## Expected Result
+## 🔑 Step 2: Get API Keys (2 minutes)
 
-You should get a JSON response like:
+### Groq API (Primary Agents - FREE TIER!)
+1. Go to: https://console.groq.com/
+2. Sign up / Log in
+3. Go to **API Keys**
+4. Click **Create API Key**
+5. Copy the key ✅
 
+### Google Gemini API (Backup + Decision Agents)
+1. Go to: https://makersuite.google.com/app/apikey
+2. Click **Get API Key**
+3. Copy the key ✅
+
+### Supabase (WhatsApp Data Storage)
+1. Go to: https://supabase.com/
+2. Create new project
+3. Go to **Settings** → **API**
+4. Copy **URL** and **anon/public** key ✅
+5. Create table:
+```sql
+CREATE TABLE "false-news" (
+  id INTEGER PRIMARY KEY,
+  text TEXT NOT NULL,
+  title TEXT,
+  subject TEXT,
+  date TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### WhatsApp Business API
+1. Go to: https://business.whatsapp.com/
+2. Follow setup instructions
+3. Get API credentials ✅
+
+---
+
+## 📥 Step 3: Import Workflow (1 minute)
+
+1. Open n8n: **http://localhost:5678**
+2. Go to **Workflows** (left sidebar)
+3. Click **Import from File**
+4. Select: `workflow-twitter-whatsapp-combined.json`
+5. Click **Import**
+
+---
+
+## 🔐 Step 4: Add Credentials (1 minute)
+
+### Add Groq API:
+1. In n8n, go to **Credentials** (left sidebar)
+2. Click **Add Credential**
+3. Search for **Groq**
+4. Paste your Groq API key
+5. Click **Save**
+
+### Add Google Gemini API:
+1. Click **Add Credential**
+2. Search for **Google PaLM** (Gemini)
+3. Paste your Gemini API key
+4. Click **Save**
+
+### Add Supabase:
+1. Click **Add Credential**
+2. Search for **Supabase**
+3. Enter:
+   - Host: Your Supabase URL
+   - Service Role Secret: Your anon key
+4. Click **Save**
+
+### Add WhatsApp:
+1. Click **Add Credential**
+2. Search for **WhatsApp**
+3. Follow the OAuth flow
+4. Click **Save**
+
+---
+
+## ✨ Step 5: Activate Workflow (30 seconds)
+
+1. Open the imported workflow
+2. Click **Active** toggle (top-right)
+3. Workflow should show green "Active" status ✅
+
+---
+
+## 🧪 Step 6: Test It! (1 minute)
+
+### Test WhatsApp Flow:
+
+1. **Add test data to Supabase:**
+```sql
+INSERT INTO "false-news" (id, text, title, subject, date)
+VALUES (
+  600,
+  'This week''s chaotic news cycle was mostly dominated by Donald Trump''s disgraceful response to violence...',
+  'Charlottesville News',
+  'Politics',
+  '2017-08-18'
+);
+```
+
+2. **Send WhatsApp message:**
+```
+600
+```
+
+3. **Check execution in n8n:**
+   - Go to **Executions** tab
+   - Click on latest execution
+   - Verify all nodes succeeded ✅
+
+4. **Expected output:**
 ```json
 {
   "final_assessment": {
     "risk_level": "MEDIUM",
     "composite_score": 55,
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "data_completeness": "PARTIAL"
   },
-  "summary": "Extraordinary health claim requires verification..."
+  "summary": "Analysis based on fact-checking and source credibility..."
 }
 ```
 
 ---
 
-## What's Next?
+## 🎯 What to Check
 
-✅ **Working?** Great! Read [SETUP_GUIDE.md](SETUP_GUIDE.md) for production deployment  
-✅ **Not working?** Check [Troubleshooting](#troubleshooting) below  
-✅ **Want to customize?** See [AGENT_PROMPTS.md](AGENT_PROMPTS.md)  
-✅ **Need examples?** Check [EXAMPLES.md](EXAMPLES.md)
+### ✅ Verify These Nodes Executed:
 
----
+1. **WhatsApp Trigger** - Received message
+2. **Code in JavaScript** - Extracted ID (600)
+3. **Get a row in Supabase** - Retrieved data
+4. **Format WhatsApp Data** - Formatted to unified structure
+5. **Agent 1 - Fact Check** - Analyzed claims
+6. **Agent 2 - Credibility** - Checked source
+7. **Agent 3 - Twitter Check** - Returned NOT_APPLICABLE (expected!)
+8. **Agent 4 - Decision** - Final risk assessment
+9. **Respond to Webhook** - Returned JSON
 
-## Troubleshooting
+### ✅ Verify Agent 3 Output:
 
-### "Invalid API key"
-→ Double-check credentials in N8N Settings → Credentials
-
-### "Webhook not found"
-→ Make sure workflow is **Active** (toggle switch)
-
-### "Agent returned empty response"
-→ Check N8N Executions tab for detailed error logs
-
-### "Timeout error"
-→ LLM taking too long, try again or use faster model
-
----
-
-## Architecture Overview
-
+Click on **Agent 3 - Twitter Check** node, should see:
+```json
+{
+  "bot_probability": "NOT_APPLICABLE",
+  "authenticity_score": 50,
+  "data_available": false,
+  "recommendation": "Account analysis not available - manual/WhatsApp input"
+}
 ```
-Input (Tweet/WhatsApp)
-    ↓
-Agent 1 (Fact Check) ─┐
-Agent 2 (Credibility) ─┤→ Combine
-Agent 3 (Twitter) ─────┘
-    ↓
-[If uncertain] → Agent 1B & 2B (Backup)
-    ↓
-Agent 4 (Decision)
-    ↓
-Output (Risk Assessment)
+
+This is **correct** - WhatsApp has no Twitter account data!
+
+### ✅ Verify Agent 4 Weighting:
+
+Agent 4 should use **70/30 weighting** (Fact/Source) for WhatsApp:
+```json
+{
+  "data_completeness": "PARTIAL"
+}
 ```
 
 ---
 
-## Key Features
+## 🐛 Troubleshooting
 
-✅ **Multi-Agent System** - 6 AI agents working together  
-✅ **Backup Agents** - Second opinion when uncertain  
-✅ **Two Input Methods** - Twitter webhook or WhatsApp manual  
-✅ **Risk Scoring** - HIGH/MEDIUM/LOW classification  
-✅ **Source Verification** - Checks MBFC, NewsGuard, fact-checkers  
-✅ **Bot Detection** - Identifies automated/suspicious accounts  
+### Issue: "Supabase connection failed"
+**Fix:**
+- Check Supabase credentials in n8n
+- Verify table "false-news" exists
+- Test connection in Supabase settings
+
+### Issue: "WhatsApp trigger not working"
+**Fix:**
+- Check WhatsApp credentials
+- Verify webhook is active
+- Check WhatsApp Business API status
+
+### Issue: "Agent returns error"
+**Fix:**
+- Check API keys are valid
+- Verify API rate limits not exceeded
+- Check agent prompts are complete
+
+### Issue: "No data returned"
+**Fix:**
+- Verify ID exists in Supabase
+- Check "Get a row in Supabase" output
+- Ensure "Format WhatsApp Data" node has correct code
 
 ---
 
-## Cost Estimate
+## 🎓 Understanding the Flow
 
-**Per Analysis:**
-- Without backup: ~$0.015
-- With backup: ~$0.085
+### Data Transformation:
 
-**Monthly (1000 analyses):**
-- ~$15-85 depending on backup trigger rate
-
----
-
-## File Structure
-
+**1. WhatsApp Message:**
 ```
-n8n-misinformation-detection-pipeline/
-├── README.md                          # Overview
-├── QUICK_START.md                     # This file
-├── SETUP_GUIDE.md                     # Detailed setup
-├── AGENT_PROMPTS.md                   # All agent prompts
-├── EXAMPLES.md                        # Test cases & examples
-├── workflow-twitter-webhook.json      # Twitter workflow
-└── workflow-whatsapp-manual.json      # WhatsApp workflow
+"600"
 ```
 
----
-
-## Support
-
-📖 **Full Documentation:** See [README.md](README.md)  
-🔧 **Detailed Setup:** See [SETUP_GUIDE.md](SETUP_GUIDE.md)  
-💬 **N8N Community:** https://community.n8n.io/  
-🐛 **Issues:** Check execution logs in N8N
-
----
-
-## Quick Reference
-
-### Risk Levels
-
-| Level | Score | Meaning |
-|-------|-------|---------|
-| HIGH | 0-40 | Likely misinformation, flag/remove |
-| MEDIUM | 41-70 | Uncertain, add context label |
-| LOW | 71-100 | Appears reliable, no action |
-
-### Agent Roles
-
-| Agent | Role | LLM |
-|-------|------|-----|
-| Agent 1 | Fact Check | Gemini |
-| Agent 2 | Credibility | Gemini |
-| Agent 3 | Twitter Check | Gemini |
-| Agent 4 | Decision | Gemini |
-| Agent 1B | Backup Fact Check | OpenAI/Claude |
-| Agent 2B | Backup Credibility | OpenAI/Claude |
-
-### Scoring Weights (Agent 4)
-
+**2. After Supabase Lookup:**
+```json
+{
+  "id": 600,
+  "text": "This week's chaotic news cycle...",
+  "title": "Charlottesville News",
+  "subject": "Politics",
+  "date": "2017-08-18"
+}
 ```
-Risk Score = (Fact × 50%) + (Source × 30%) + (Account × 20%)
+
+**3. After Format WhatsApp Data:**
+```json
+{
+  "tweetText": "This week's chaotic news cycle...",
+  "tweetSource": "Charlottesville News",
+  "sourceType": "whatsapp",
+  "tweetMetadata": {},
+  "accountData": {},
+  "supabase_id": 600
+}
+```
+
+**4. After Agents:**
+```json
+{
+  "final_assessment": {
+    "risk_level": "HIGH/MEDIUM/LOW",
+    "composite_score": 0-100,
+    "confidence": "HIGH/MEDIUM/LOW"
+  }
+}
 ```
 
 ---
 
-## Next Steps
+## 📊 Monitoring
 
-1. ✅ Test with examples from [EXAMPLES.md](EXAMPLES.md)
-2. ✅ Customize agent prompts in [AGENT_PROMPTS.md](AGENT_PROMPTS.md)
-3. ✅ Set up monitoring and alerts
-4. ✅ Deploy to production (see [SETUP_GUIDE.md](SETUP_GUIDE.md))
+### Key Metrics to Watch:
+
+1. **Execution Time:**
+   - Target: 5-15 seconds (without backups)
+   - With backups: 15-30 seconds
+
+2. **Backup Trigger Rate:**
+   - Target: 20-30%
+   - If >50%: Agents may need better prompts
+   - If <10%: Agents may be overconfident
+
+3. **Error Rate:**
+   - Target: <1%
+   - Common: Supabase timeouts, API rate limits
+
+4. **Cost per Message:**
+   - WhatsApp: ~$0.003 (without backups)
+   - WhatsApp: ~$0.018 (with backups)
+
+### View Execution Logs:
+
+1. Go to **Executions** tab
+2. Click on any execution
+3. See each node's input/output
+4. Check execution time per node
 
 ---
 
-**You're all set! 🚀**
+## 🚀 Next Steps
 
-Start sending tweets or messages to your pipeline and watch the AI agents work their magic!
+### For Production:
 
+1. **Add More Test Data:**
+```sql
+INSERT INTO "false-news" (id, text, title, subject, date)
+VALUES 
+  (601, 'Another test message...', 'Source', 'Topic', '2024-01-01'),
+  (602, 'More test data...', 'Source', 'Topic', '2024-01-02');
+```
+
+2. **Test Different Scenarios:**
+   - True claims from reliable sources
+   - False claims from unreliable sources
+   - Mixed/unverifiable claims
+   - Different topics (health, politics, science)
+
+3. **Monitor Performance:**
+   - Track execution times
+   - Monitor API costs
+   - Review backup trigger rates
+   - Check accuracy vs ground truth
+
+4. **Tune Prompts:**
+   - Adjust confidence thresholds
+   - Modify risk level boundaries
+   - Add domain-specific knowledge
+   - Update fact-checking sources
+
+### For Twitter Support:
+
+1. **Get Twitter API Credentials:**
+   - Apply for Elevated access
+   - Get API keys
+
+2. **Add Twitter Credentials to n8n:**
+   - Go to Credentials
+   - Add Twitter API v2
+   - Paste keys
+
+3. **Test Twitter Webhook:**
+```bash
+curl -X POST http://localhost:5678/webhook/misinformation-check-twitter \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tweets": [{
+      "tweetText": "Breaking news: Scientists discover...",
+      "tweetSource": "https://example.com/article",
+      "tweetMetadata": {
+        "account_handle": "@username",
+        "follower_count": 5000,
+        "tweet_count": 12000
+      }
+    }]
+  }'
+```
+
+4. **Verify Full Data Flow:**
+   - Agent 1: Fact-check ✅
+   - Agent 2: Source + Bot check ✅
+   - Agent 3: Full account analysis ✅
+   - Agent 4: 50/30/20 weighting ✅
+
+---
+
+## 📚 Additional Resources
+
+### Documentation:
+- **README.md** - Complete overview
+- **AI_CONTEXT.md** - Context for AI assistants
+- **AGENT_PROMPTS.md** - All agent prompts
+- **EXAMPLES.md** - Test cases
+
+### External Links:
+- n8n Docs: https://docs.n8n.io/
+- Groq Docs: https://console.groq.com/docs
+- Gemini Docs: https://ai.google.dev/docs
+- Supabase Docs: https://supabase.com/docs
+
+### Community:
+- n8n Community: https://community.n8n.io/
+- n8n Discord: https://discord.gg/n8n
+
+---
+
+## ✨ You're Done!
+
+Your misinformation detection pipeline is now:
+- ✅ Installed
+- ✅ Configured
+- ✅ Tested
+- ✅ Ready to use!
+
+**Send a WhatsApp message and watch the magic happen!** 🚀
+
+---
+
+## 💡 Pro Tips
+
+1. **Use Groq Free Tier** - Save costs on primary agents
+2. **Monitor Backup Triggers** - Tune prompts if too high/low
+3. **Cache Results** - Avoid re-analyzing identical content
+4. **Add Rate Limiting** - Prevent API abuse
+5. **Log Everything** - Track performance and accuracy
+6. **Human Review** - Always verify high-risk cases
+7. **Update Prompts** - Improve based on feedback
+8. **Test Regularly** - Ensure accuracy over time
+
+---
+
+**Need help?** Check [README.md](README.md) or [AI_CONTEXT.md](AI_CONTEXT.md)
+
+**Questions?** Review [EXAMPLES.md](EXAMPLES.md) for test cases
+
+**Ready for more?** See [AGENT_PROMPTS.md](AGENT_PROMPTS.md) to customize agents
