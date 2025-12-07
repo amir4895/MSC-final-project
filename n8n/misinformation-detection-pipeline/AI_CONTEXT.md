@@ -1,7 +1,8 @@
 # AI Context File - Misinformation Detection Pipeline
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
-**Last Updated:** December 5, 2025  
+**Last Updated:** December 7, 2025  
+**Version:** 2.2 - Fixed Output Parsing & Model Updates  
 **Project Status:** Active Development - WhatsApp flow working, Twitter flow ready for testing
 
 ---
@@ -470,6 +471,44 @@ See `EXAMPLES.md` for full test cases including:
 3. Verify all agents executed
 4. Review final risk assessment
 5. Validate against known ground truth
+
+---
+
+## 🆕 Recent Updates (v2.2 - Dec 7, 2025)
+
+### Major Fixes:
+1. **Output Parsing Errors Fixed**
+   - Removed `agent: "conversationalAgent"` parameter from all 6 AI agents
+   - Added `maxIterations: 1` to force direct output without action wrappers
+   - Updated system messages to explicitly forbid markdown formatting
+   - Result: Agents now return clean JSON without parsing failures
+
+2. **Backup Agent Logic Fixed**
+   - Agent 1B & 2B now receive full prompts (not placeholders)
+   - Backup agents get both original content AND primary agent's analysis
+   - Confidence check now only triggers on `confidence == "low"` (not verdict-dependent)
+   - Result: True second opinions with proper context
+
+3. **Merge Nodes Fixed**
+   - Changed from `combine/mergeByPosition` to `append` mode
+   - Merge Agent Results now use `$('Agent 1 - Fact Check').item.json.output` to reference primary agents
+   - Fixed "Expected 2 inputs, got 1" errors
+   - Result: Proper averaging of primary and backup scores
+
+4. **Confidence Check IF Nodes Fixed**
+   - Updated to parse JSON output: `JSON.parse($json.output).confidence`
+   - Fixed Agent 1 check to only evaluate confidence (removed verdict condition)
+   - Result: Backup agents trigger correctly when confidence is low
+
+### Model Updates:
+- **Groq (Primary Agents 1, 2, 3):** `meta-llama/llama-4-scout-17b-16e-instruct`
+- **Google Gemini (Backup/Decision):** `models/gemini-2.5-flash-lite`
+- Parameter name corrected: `modelName` (not `model`) for Gemini
+
+### Component Renaming:
+- `Combine All Agent Results` → `Merge Agents 1 & 2`
+- `Combine All Agent Results1` → `Merge with Agent 3`
+- `Combine All Agent Results2` → `Merge Dataset & Twitter Inputs`
 
 ---
 

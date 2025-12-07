@@ -1,7 +1,7 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 5, 2025  
-**Version:** 2.1 - Optimized WhatsApp Flow  
+**Last Updated:** December 7, 2025  
+**Version:** 2.2 - Fixed Output Parsing & Model Updates  
 **Status:** WhatsApp Active ✅ | Twitter Ready ⏳
 
 ---
@@ -111,6 +111,23 @@ Agent 4 decides (50% fact + 30% source + 20% account)
     ↓
 Return risk assessment
 ```
+
+---
+
+## 🆕 Recent Updates (v2.2 - Dec 7, 2025)
+
+### Fixed:
+- ✅ **Output Parsing Errors** - Removed `agent: conversationalAgent` parameter and added `maxIterations: 1` to all agents
+- ✅ **JSON Formatting** - Agents now return clean JSON without markdown wrappers
+- ✅ **Backup Agent Logic** - Fixed prompts and triggers (now only checks confidence, not verdict)
+- ✅ **Merge Node Errors** - Changed to `append` mode and fixed data access
+- ✅ **Confidence Checks** - IF nodes now properly parse agent JSON output
+
+### Updated:
+- 🔄 **Groq Model** - Primary agents now use `meta-llama/llama-4-scout-17b-16e-instruct`
+- 🔄 **Google Gemini Model** - Backup/decision agents now use `models/gemini-2.5-flash-lite`
+- 🔄 **Merge Nodes** - Better naming (Merge Agents 1 & 2, Merge with Agent 3)
+- 🔄 **Merge Logic** - Now uses `$()` syntax to reference primary agents directly
 
 ---
 
