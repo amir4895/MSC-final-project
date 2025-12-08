@@ -1,7 +1,7 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 7, 2025  
-**Version:** 2.2 - Fixed Output Parsing & Model Updates  
+**Last Updated:** December 8, 2025  
+**Version:** 3.0 - Advanced False News Classification  
 **Status:** WhatsApp Active ✅ | Twitter Ready ⏳
 
 ---
@@ -114,20 +114,57 @@ Return risk assessment
 
 ---
 
-## 🆕 Recent Updates (v2.2 - Dec 7, 2025)
+## 🆕 Recent Updates (v3.0 - Dec 8, 2025)
 
-### Fixed:
-- ✅ **Output Parsing Errors** - Removed `agent: conversationalAgent` parameter and added `maxIterations: 1` to all agents
-- ✅ **JSON Formatting** - Agents now return clean JSON without markdown wrappers
-- ✅ **Backup Agent Logic** - Fixed prompts and triggers (now only checks confidence, not verdict)
-- ✅ **Merge Node Errors** - Changed to `append` mode and fixed data access
-- ✅ **Confidence Checks** - IF nodes now properly parse agent JSON output
+### 🚀 Major Upgrade: Advanced False News Classification
+
+#### **Agent 1 - Completely Redesigned:**
+- ✅ **Multi-Dimensional Classification:**
+  - MISINFORMATION (unintentional false info)
+  - DISINFORMATION (deliberate false info)
+  - PROPAGANDA (true facts, misleading framing) ⭐ NEW
+  - SATIRICAL (humor/satire)
+  - CLICK-BAIT (low quality content)
+  - LEGITIMATE (accurate and fair)
+  - BIASED_BUT_FACTUAL (true but biased) ⭐ NEW
+
+- ✅ **Two-Dimensional Scoring:**
+  - `fact_accuracy_score` (0-100) - How factually correct
+  - `deceptiveness_score` (0-100) - How misleading ⭐ NEW
+  - **Key Insight:** TRUE FACTS can still be MISLEADING
+
+- ✅ **Advanced Pattern Detection:**
+  - FABRICATION - Made-up facts
+  - SELECTIVE_OMISSION - Cherry-picking facts
+  - FALSE_CAUSATION - Incorrect cause-effect
+  - INTENT_FABRICATION - Falsely attributing motives
+  - EMOTIONAL_MANIPULATION - Exploiting emotions
+  - MISLEADING_FRAMING - Biased presentation
+
+- ✅ **Context Analysis:**
+  - Detects omitted context
+  - Identifies false connections between facts
+  - Flags misleading framing
+  - Recognizes false choices/dichotomies
+
+#### **Agent 2 - Enhanced Source Analysis:**
+- ✅ **Publisher Extraction:** For dataset articles, extracts actual publisher from text
+- ✅ **Three-Scenario Support:** Dataset/Twitter/News articles
+- ✅ **Web Search Integration:** Uses web_search for verification
+
+#### **Backup Agents - True Independence:**
+- ✅ **Comparison Analysis:** New `comparison_with_primary` field
+  - Areas of agreement
+  - Areas of disagreement
+  - Explanation of differences
+- ✅ **Encouraged Disagreement:** "Disagreement is valuable"
+- ✅ **Web Search Access:** Independent verification capability
 
 ### Updated:
-- 🔄 **Groq Model** - Primary agents now use `meta-llama/llama-4-scout-17b-16e-instruct`
-- 🔄 **Google Gemini Model** - Backup/decision agents now use `models/gemini-2.5-flash-lite`
-- 🔄 **Merge Nodes** - Better naming (Merge Agents 1 & 2, Merge with Agent 3)
-- 🔄 **Merge Logic** - Now uses `$()` syntax to reference primary agents directly
+- 🔄 **Max Iterations:** Increased to 5 for Agent 1 (was 1)
+- 🔄 **Web Search Tools:** Integrated for fact verification
+- 🔄 **Groq Model** - Primary agents use `meta-llama/llama-4-scout-17b-16e-instruct`
+- 🔄 **Google Gemini Model** - Backup/decision agents use `models/gemini-2.5-flash`
 
 ---
 

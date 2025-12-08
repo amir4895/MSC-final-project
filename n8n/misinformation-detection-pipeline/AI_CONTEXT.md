@@ -1,8 +1,8 @@
 # AI Context File - Misinformation Detection Pipeline
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
-**Last Updated:** December 7, 2025  
-**Version:** 2.2 - Fixed Output Parsing & Model Updates  
+**Last Updated:** December 8, 2025  
+**Version:** 3.0 - Advanced False News Classification  
 **Project Status:** Active Development - WhatsApp flow working, Twitter flow ready for testing
 
 ---
@@ -474,7 +474,75 @@ See `EXAMPLES.md` for full test cases including:
 
 ---
 
-## 🆕 Recent Updates (v2.2 - Dec 7, 2025)
+## 🆕 Recent Updates (v3.0 - Dec 8, 2025)
+
+### 🚀 MAJOR UPGRADE: Advanced False News Classification System
+
+This is a complete paradigm shift from simple fact-checking to sophisticated false news classification.
+
+#### **Core Philosophy Change:**
+- ❌ **Old Approach:** Binary TRUE/FALSE fact-checking
+- ✅ **New Approach:** Nuanced classification that recognizes **TRUE FACTS can be MISLEADING**
+
+#### **Agent 1 - Now "False News Classification Agent":**
+
+**New Classifications (7 types):**
+1. **LEGITIMATE** - Accurate and fair reporting
+2. **BIASED_BUT_FACTUAL** - True facts with bias
+3. **PROPAGANDA** - True facts with misleading framing ⭐ KEY INNOVATION
+4. **MISINFORMATION** - Inaccurate, unintentional
+5. **DISINFORMATION** - False, deliberate
+6. **SATIRICAL** - Humor/satire
+7. **CLICK-BAIT** - Low quality for traffic
+
+**Two-Dimensional Scoring:**
+- `fact_accuracy_score` (0-100) - Factual correctness
+- `deceptiveness_score` (0-100) - How misleading
+
+**Classification Logic:**
+- If Accuracy < 40: DISINFORMATION/MISINFORMATION
+- If Accuracy > 60 BUT Deceptiveness > 60: **PROPAGANDA** ⭐
+- If Accuracy > 80 AND Deceptiveness < 30: LEGITIMATE
+
+**New Detection Patterns:**
+- FABRICATION - Made-up information
+- SELECTIVE_OMISSION - Cherry-picking facts
+- FALSE_CAUSATION - Incorrect cause-effect relationships
+- INTENT_FABRICATION - Falsely attributing motives
+- EMOTIONAL_MANIPULATION - Exploiting emotions
+- MISLEADING_FRAMING - Biased presentation
+
+**Context Analysis:**
+- Detects omitted context
+- Identifies false connections
+- Flags intent fabrication
+- Recognizes misleading framing
+- Spots false choices/dichotomies
+
+**Technical Changes:**
+- Max iterations: 5 (was 1)
+- Web search integration
+- More sophisticated output structure
+
+#### **Agent 2 - Enhanced Source Analysis:**
+- **Publisher Extraction:** For dataset articles, extracts actual publisher from article text (not image sources)
+- **Three-Scenario Support:**
+  1. Dataset articles → Extract publisher from text
+  2. Twitter data → Full analysis
+  3. News articles → Domain credibility
+- **Web Search Integration:** Uses web_search for verification
+- **More Detailed Output:** Includes `source_identified`, `source_type`, `extraction_method`
+
+#### **Backup Agents - True Second Opinions:**
+- **New Field:** `comparison_with_primary`
+  - `areas_of_agreement`
+  - `areas_of_disagreement`
+  - `why_different`
+- **Philosophy:** "Disagreement is valuable"
+- **Independence:** Encouraged to disagree with primary agent
+- **Web Search Access:** Can verify independently
+
+### Previous Updates (v2.2 - Dec 7, 2025)
 
 ### Major Fixes:
 1. **Output Parsing Errors Fixed**

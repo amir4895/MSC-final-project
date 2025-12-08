@@ -1,5 +1,5 @@
 {
-  "name": "Misinformation Detection - Twitter & WhatsApp (Combined)",
+  "name": "Misinformation_Detection-Updated",
   "nodes": [
     {
       "parameters": {
@@ -8,101 +8,82 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "9898d0e7-20dd-46f0-9c51-44f63a2e921b",
+      "id": "31855f05-fc4f-4d6d-90a6-2e65efb62ae2",
       "name": "Webhook - Twitter Input",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [-1952, 64],
+      "position": [
+        -2544,
+        960
+      ],
       "webhookId": "twitter-misinfo-webhook"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "tweet_text",
-              "name": "tweetText",
-              "value": "={{ $json.tweetText || $json.text || '' }}",
-              "type": "string"
-            },
-            {
-              "id": "tweet_source",
-              "name": "tweetSource",
-              "value": "={{ $json.tweetSource || 'N/A' }}",
-              "type": "string"
-            },
-            {
-              "id": "tweet_metadata",
-              "name": "tweetMetadata",
-              "value": "={{ $json.tweetMetadata || {} }}",
-              "type": "object"
-            },
-            {
-              "id": "account_data",
-              "name": "accountData",
-              "value": "={{ $json.accountData || {} }}",
-              "type": "object"
-            },
-            {
-              "id": "source_type",
-              "name": "sourceType",
-              "value": "={{ $json.sourceType || 'twitter' }}",
-              "type": "string"
-            }
-          ]
-        },
         "options": {}
       },
-      "id": "7d09523f-7f83-44ff-8ce1-341628a0032c",
+      "id": "4b06922a-055e-4616-82cc-02c9b1f88b28",
       "name": "Parse Input Data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
-      "position": [-816, 32]
+      "position": [
+        -1408,
+        928
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Factual Claim Verifier\n\nINPUT: {{ $json.tweetText }}\n\nPRIMARY MISSION:\nExtract and verify specific factual claims made in the tweet using authoritative sources.\n\nANALYSIS PROCESS:\n\nStep 1 - Claim Extraction:\n- Identify all verifiable factual claims (names, dates, events, statistics, quotes)\n- Distinguish between opinions and factual assertions\n- Flag claims that are presented as facts but lack specificity\n\nStep 2 - Claim Verification:\nUse the following sources in priority order:\n1. Professional fact-checking sites:\n   - https://www.snopes.com/\n   - https://www.politifact.com/\n   - https://www.factcheck.org/\n   - https://fullfact.org/\n   - https://factcheck.afp.com/\n\n2. Primary sources (for direct verification):\n   - Official government statements/websites\n   - Court documents and legal filings\n   - Academic papers and peer-reviewed research\n   - Original news reports from reputable outlets\n   - Company official statements\n\n3. Reverse image search (if images mentioned):\n   - https://images.google.com/\n   - https://tineye.com/\n\nStep 3 - Evidence Assessment:\n- Multiple credible sources confirm = VERIFIED\n- Multiple credible sources contradict = FALSE\n- Mixed evidence or lack of coverage = UNVERIFIED\n- Claim is too vague to verify = NOT VERIFIABLE\n\nRED FLAGS FOR MISINFORMATION:\n- Extraordinary claims without extraordinary evidence\n- Out-of-context statistics or quotes\n- Misleading temporal framing (\"just happened\" for old events)\n- Manipulated or misattributed images\n- Claims that contradict expert consensus\n- Emotional language designed to provoke rather than inform\n\nCLASSIFICATION CRITERIA:\n- TRUE: All major claims verified by multiple credible sources\n- MOSTLY TRUE: Core claims verified, minor details unverified\n- MIXED: Some claims true, others false or unverified\n- MOSTLY FALSE: Core claims contradicted or unverified\n- FALSE: Major claims definitively contradicted by evidence\n- UNVERIFIABLE: Claims too vague or lacking sufficient information\n\nOUTPUT FORMAT (JSON only):\n{\n  \"verdict\": \"TRUE/MOSTLY_TRUE/MIXED/MOSTLY_FALSE/FALSE/UNVERIFIABLE\",\n  \"confidence\": \"high/medium/low\",\n  \"verified_claims\": [\n    {\n      \"claim\": \"specific claim text\",\n      \"status\": \"verified/false/unverified\",\n      \"evidence\": \"brief explanation\",\n      \"sources\": [\"source1\", \"source2\"]\n    }\n  ],\n  \"overall_assessment\": \"2-3 sentence summary of findings\",\n  \"fact_check_score\": 0-100\n}\n\nIMPORTANT NOTES:\n- Focus on CLAIMS, not opinions or predictions\n- A tweet can be opinion-heavy but factually accurate\n- Absence of evidence is not evidence of falsehood\n- Be transparent about limitations in verification\n- Return ONLY valid JSON, no additional text",
+        "text": "=ROLE: False News Classification Agent\n\nINPUT: {{ $json.tweetText }}\n\nTOOLS: web_search - USE THIS\n\nMISSION: Verify facts using web_search AND classify false news type.\n\nKEY: TRUE FACTS can still be MISLEADING\n\nDEFINITIONS:\n1. MISINFORMATION: Inaccurate, unintentional\n2. DISINFORMATION: False, deliberate\n3. PROPAGANDA: True facts, misleading framing\n4. SATIRICAL: Humor, misleading out of context\n5. CLICK-BAIT: Low quality for traffic\n\nSTEPS:\n\n1. VERIFY FACTS\nFor each claim: web_search(\"[claim] Snopes\")\n\n2. CHECK CONTEXT\n- Context OMITTED?\n- Facts CONNECTED falsely?\n- INTENT without evidence?\n- FRAMING misleading?\n- False CHOICE?\n\n3. DETECT PATTERNS\n- FABRICATION\n- SELECTIVE_OMISSION\n- FALSE_CAUSATION\n- INTENT_FABRICATION\n- EMOTIONAL_MANIPULATION\n- MISLEADING_FRAMING\n\n4. SCORE\nFact Accuracy: 0-100\nDeceptiveness: 0-100\n\n5. CLASSIFY\nIf Accuracy < 40: DISINFORMATION/MISINFORMATION\nIf Accuracy > 60 BUT Deceptiveness > 60: PROPAGANDA\nIf humorous: SATIRICAL\nIf Accuracy > 80 AND Deceptiveness < 30: LEGITIMATE\n\nOUTPUT (JSON only):\n{\n  \"classification\": \"LEGITIMATE|BIASED_BUT_FACTUAL|PROPAGANDA|MISINFORMATION|DISINFORMATION|SATIRICAL|CLICK-BAIT\",\n  \"fact_accuracy_score\": 0-100,\n  \"deceptiveness_score\": 0-100,\n  \"appears_intentional\": true/false,\n  \"verified_claims\": [{\"claim\":\"\",\"status\":\"\",\"evidence\":\"\",\"sources\":[],\"context_issue\":\"\"}],\n  \"false_news_patterns_detected\": [],\n  \"key_omissions\": [],\n  \"manipulation_techniques\": [],\n  \"confidence\": \"high|medium|low\",\n  \"overall_assessment\": \"\",\n  \"recommendation\": \"FLAG_AS_FALSE_NEWS|LABEL_AS_BIASED|NO_ACTION_NEEDED\"\n}\n\nCRITICAL: Use web_search. Return only JSON.",
         "options": {
-          "systemMessage": "You are a professional fact-checker. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly.",
-          "maxIterations": 1
+          "systemMessage": "You are a fact-checker with web_search. USE web_search for every claim. Return ONLY valid JSON, no markdown.",
+          "maxIterations": 5
         }
       },
-      "id": "7411c8e0-0cbb-4a63-979b-7181eb97e7bf",
+      "id": "a73bd663-6688-48be-bf41-72f021aa15fd",
       "name": "Agent 1 - Fact Check",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [-624, -544]
+      "position": [
+        -1216,
+        352
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Source Trustworthiness Evaluator\n\nINPUT:\n- Tweet source/domain: {{ $json.tweetSource }}\n- Tweet metadata: {{ $json.tweetMetadata }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAssess the reliability and trustworthiness of the information source and detect potential bot behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf tweetSource is 'N/A' or metadata is empty (dataset/manual input):\n- Set source_credibility rating to 'UNKNOWN'\n- Set source_credibility score to 50 (neutral)\n- Skip bot behavior detection\n- Set bot_likelihood assessment to 'NOT_APPLICABLE'\n- Set overall_trustworthiness_score to 50\n- Note in recommendation: 'Source verification not available - dataset/manual input'\n- Return the JSON structure with these default values\n\nANALYSIS PROCESS (only if Twitter data available):\n\nPART A - SOURCE CREDIBILITY ASSESSMENT:\n\nStep 1 - Domain/Source Identification:\n- Extract domain or news source mentioned in tweet\n- Identify if tweet links to external source or is original claim\n\nStep 2 - Source Credibility Check:\nUse these databases in order:\n1. https://mediabiasfactcheck.com/ (MBFC ratings)\n2. https://www.newsguardtech.com/ (NewsGuard ratings)\n3. https://www.poynter.org/ifcn/ (IFCN verified signatories)\n4. Wikipedia list of fake news websites\n5. Domain age check via WHOIS lookup\n\nStep 3 - Source Classification:\n- HIGH CREDIBILITY: Established media, fact-checked, transparent methodology\n- MEDIUM CREDIBILITY: Known outlet but with bias or mixed record\n- LOW CREDIBILITY: Flagged by fact-checkers, history of misinformation\n- UNKNOWN: No available ratings, new or obscure source\n\nCREDIBILITY RED FLAGS:\n- Domain flagged by MBFC as \"questionable source\" or \"low credibility\"\n- NewsGuard rating below 60/100\n- Domain created recently (less than 1 year old)\n- Mimics legitimate news site names\n- No clear editorial standards or correction policy\n- History of publishing debunked claims\n\nPART B - BOT BEHAVIOR DETECTION:\n\nAccount Age Signals:\n- SUSPICIOUS: Account less than 30 days old\n- CAUTION: Account 30-90 days old\n- NORMAL: Account older than 90 days\n\nTweet Frequency Analysis:\n- Calculate: tweets per day ratio\n- SUSPICIOUS: >50 tweets per day consistently\n- CAUTION: 20-50 tweets per day\n- NORMAL: <20 tweets per day\n\nProfile Completeness Check:\n- Profile picture present? (1 point)\n- Bio/description present? (1 point)\n- Location specified? (1 point)\n- Verified account? (2 points)\n- Custom header image? (1 point)\n- SCORE: 0-1 = Incomplete, 2-3 = Partial, 4-6 = Complete\n\nBot Behavior Heuristics:\n- Repetitive posting patterns\n- Generic or nonsensical username\n- No original content, only retweets\n- Engagement ratio imbalance\n- Amplification of known misinformation sources\n\nOUTPUT FORMAT (JSON only):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN/NOT_APPLICABLE\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"] or [],\n    \"red_flags\": [\"list issues\"] or []\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK/MODERATE_RISK/LOW_RISK/HUMAN_LIKELY/NOT_APPLICABLE\",\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [\"list behaviors\"] or [],\n    \"confidence\": \"high/medium/low/not_applicable\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nOverall Trustworthiness = (Source Credibility × 0.6) + (Bot Assessment × 0.4)\n\nBot Assessment scores:\n- Human-likely = 100\n- Low bot risk = 75\n- Moderate bot risk = 40\n- High bot risk = 10\n- Not applicable = 50\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=ROLE: Source Trustworthiness Evaluator\n\nINPUT:\n- Article text: {{ $json.tweetText }}\n- Source: {{ $json.tweetSource }}\n- Type: {{ $json.sourceType }}\n- Account: {{ $json.accountData }}\n- Title: {{ $json.title }}\n- Subject: {{ $json.subject }}\n\nTOOLS: web_search - USE THIS\n\nMISSION: Assess source reliability for 3 scenarios:\n1. Dataset articles (extract PUBLISHER from text)\n2. Twitter data (full analysis)\n3. News articles (domain credibility)\n\n═══════════════════════════════════════════════════════════════\nSTEP 1: IDENTIFY SCENARIO\n═══════════════════════════════════════════════════════════════\n\nIf sourceType = \"dataset\":\n  → Extract PUBLISHER (not image/photo source!)\n  → Skip bot detection\n\nIf sourceType = \"twitter\":\n  → Full Twitter analysis\n  → Bot detection\n\nIf sourceType = \"news\":\n  → Domain credibility check\n\n═══════════════════════════════════════════════════════════════\nSTEP 2A: EXTRACT PUBLISHER (dataset articles)\n═══════════════════════════════════════════════════════════════\n\nCRITICAL: Photo credits are NOT the publisher!\n\nLook for THE WEBSITE/PUBLICATION that published this article:\n\n1. Check article metadata:\n   - Title: {{ $json.title }}\n   - Subject: {{ $json.subject }}\n\n2. Look in text for:\n   - Domain names (breitbart.com, cnn.com, etc.)\n   - \"Published by [name]\"\n   - \"Source: [publication]\"\n   - Website name or logo mentioned\n   - Author byline with publication\n\n3. Analyze writing style and quality:\n   - Professional journalism standards → likely established news\n   - Opinion/partisan language → likely partisan media\n   - Vulgar/sensational language → likely low-quality blog\n   - No attribution → likely unknown blog\n\nIGNORE (these are NOT publishers):\n❌ \"Featured image via [X]\" or \"Image credit: [X]\"\n❌ \"Photo by [X]\" or \"Photo courtesy of [X]\"\n❌ \"According to [source]\" when citing another publication\n❌ Social media mentions (Twitter, Facebook, Instagram)\n❌ Wire services mentioned in passing (AP, Reuters) unless they're the actual publisher\n\n═══════════════════════════════════════════════════════════════\nSTEP 2B: CHECK CREDIBILITY (if publisher identified)\n═══════════════════════════════════════════════════════════════\n\nIf you identified a PUBLISHER:\n\nUSE web_search:\n- web_search(\"[publisher name] Media Bias Fact Check\")\n- web_search(\"[publisher name] NewsGuard rating\")\n- web_search(\"[publisher name] credibility\")\n\nMBFC ratings:\n- Least Biased = HIGH (85-100)\n- Left/Right High Factual = MEDIUM (60-80)\n- Mixed Factual = LOW (35-60)\n- Questionable Source = VERY LOW (0-35)\n\n═══════════════════════════════════════════════════════════════\nSTEP 3: BOT DETECTION (only if Twitter data)\n═══════════════════════════════════════════════════════════════\n\nIf accountData empty or sourceType ≠ \"twitter\":\n  → bot_likelihood.assessment = \"NOT_APPLICABLE\"\n  → bot_likelihood.data_available = false\n  → All bot metrics = 0 or N/A\n\nIf accountData present:\n  → Analyze account age, frequency, profile completeness, etc.\n  → Calculate bot probability\n\n═══════════════════════════════════════════════════════════════\nSTEP 4: CONTENT QUALITY ASSESSMENT (if no publisher found)\n═══════════════════════════════════════════════════════════════\n\nIf unable to identify publisher, assess content quality:\n\nHIGH-RISK INDICATORS (score 15-35):\n□ No publication name anywhere in article\n□ No author byline or attribution\n□ Vulgar or unprofessional language\n□ Highly sensational/emotional headlines\n□ Opinion presented as hard news without labeling\n□ Only photo credits (no publisher attribution)\n□ Multiple spelling/grammar errors\n□ Inflammatory language targeting specific groups\n\nMEDIUM-RISK INDICATORS (score 35-55):\n□ Unclear publisher attribution\n□ Partisan tone but some journalistic structure\n□ Opinion/editorial but not clearly labeled\n□ Some attribution but not to established outlet\n\nLOW-RISK INDICATORS (score 55-75):\n□ Clear editorial/opinion labeling\n□ Byline present with some credentials\n□ Professional tone despite partisan lean\n□ Some attempt at balanced reporting\n\nBased on indicators, set:\n- rating: \"UNKNOWN\", \"LOW\", or \"VERY_LOW\"\n- score: 15-55 (based on number and severity of red flags)\n- source_identified: \"unknown publisher - analysis based on content quality\"\n- source_type: \"blog\", \"partisan_media\", or \"unknown\"\n\n═══════════════════════════════════════════════════════════════\nOUTPUT (JSON only)\n═══════════════════════════════════════════════════════════════\n\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH|MEDIUM|LOW|UNKNOWN|VERY_LOW\",\n    \"score\": 0-100,\n    \"source_identified\": \"publisher name or 'unknown - see explanation'\",\n    \"source_type\": \"established_news|partisan_media|blog|unknown\",\n    \"explanation\": \"Brief reasoning for rating\",\n    \"sources_checked\": [\"list of searches performed\"],\n    \"red_flags\": [\"list quality issues found\"],\n    \"extraction_method\": \"metadata|article_text|content_analysis|domain\"\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK|MODERATE_RISK|LOW_RISK|HUMAN_LIKELY|NOT_APPLICABLE\",\n    \"data_available\": true/false,\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [],\n    \"confidence\": \"high|medium|low|not_applicable\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary\",\n  \"scenario\": \"dataset|twitter|news_article\"\n}\n\n═══════════════════════════════════════════════════════════════\nSCORING LOGIC\n═══════════════════════════════════════════════════════════════\n\nIf scenario = \"dataset\" (no bot data):\n  → overall_trustworthiness_score = source_credibility.score\n\nIf scenario = \"twitter\" (full data available):\n  → overall_trustworthiness_score = (source × 0.6) + (bot × 0.4)\n\nIf scenario = \"news_article\" (domain but no account):\n  → overall_trustworthiness_score = source_credibility.score\n\nFor dataset with no identified publisher:\n  → Score based on content quality indicators (15-55 range)\n  → More red flags = lower score\n\n═══════════════════════════════════════════════════════════════\nCRITICAL REMINDERS\n═══════════════════════════════════════════════════════════════\n\n✓ Photo/image credits are NOT publishers\n✓ Look for actual publication/website name\n✓ USE web_search to verify identified publishers\n✓ If no publisher found, assess content quality\n✓ Absence of publisher attribution is a major red flag\n✓ Handle missing data gracefully (NOT_APPLICABLE)\n✓ Return ONLY valid JSON, no markdown or explanation text\n\nReturn only JSON.",
         "options": {
-          "systemMessage": "You are a source credibility analyst. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly. Handle missing data gracefully.",
-          "maxIterations": 1
+          "systemMessage": "You are a source credibility analyst with web_search. USE web_search to check sources. Extract source from article text for datasets. Return ONLY valid JSON, no markdown.",
+          "maxIterations": 5
         }
       },
-      "id": "01824fb7-c82d-48b7-9ee2-76d1bc79f6ba",
+      "id": "23793250-f53a-4d2d-b8b6-c324c2cf4a58",
       "name": "Agent 2 - Credibility",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [-592, 0]
+      "position": [
+        -1184,
+        896
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Twitter Account Behavior Analyst\n\nINPUT:\n- Account data: {{ $json.accountData }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY MISSION:\nAnalyze Twitter account behavior patterns to identify automated, suspicious, or coordinated inauthentic behavior.\n\n⚠️ IMPORTANT - HANDLE MISSING DATA:\nIf accountData is empty or sourceType is not 'twitter' (dataset/manual input):\n- Set all account_analysis fields to 'NOT_APPLICABLE' or 0\n- Set bot_probability to 'NOT_APPLICABLE'\n- Set authenticity_score to 50 (neutral)\n- Note in recommendation: 'Account analysis not available - dataset/manual input'\n- Return the JSON structure with these default values\n\nANALYSIS FRAMEWORK (only if Twitter data available):\n\nMETRIC 1 - Account Age Analysis:\n- Calculate: Days since account creation\n- RISK LEVELS:\n  * <7 days = VERY HIGH RISK\n  * 7-30 days = HIGH RISK\n  * 31-90 days = MODERATE RISK\n  * 91-365 days = LOW RISK\n  * >365 days = MINIMAL RISK\n\nMETRIC 2 - Tweet Frequency Analysis:\n- Calculate: Total tweets / Account age in days = tweets_per_day\n- RISK LEVELS:\n  * >100 tweets/day = VERY HIGH RISK\n  * 50-100 tweets/day = HIGH RISK\n  * 20-49 tweets/day = MODERATE RISK\n  * 10-19 tweets/day = LOW RISK\n  * <10 tweets/day = MINIMAL RISK\n\nMETRIC 3 - Profile Completeness Score:\n- Profile picture = 1 point\n- Bio/description = 1 point\n- Location = 1 point\n- Verified badge = 2 points\n- Custom header = 1 point\n- Website/link = 1 point\nTOTAL: X/7 points\n- 6-7 = COMPLETE (low risk)\n- 4-5 = PARTIAL (moderate risk)\n- 2-3 = MINIMAL (high risk)\n- 0-1 = INCOMPLETE (very high risk)\n\nMETRIC 4 - Follower/Following Ratio:\n- Calculate: follower_count / following_count\n- ANALYSIS:\n  * Ratio >10 = Influential/Popular\n  * Ratio 0.1-10 = Balanced\n  * Ratio <0.1 AND following >1000 = Spam pattern\n  * Ratio >100 AND followers <500 = Suspicious\n\nMETRIC 5 - Content Pattern Analysis:\n- Repetitive content\n- Excessive hashtags (>5 per tweet)\n- Only retweets, no original content\n- Links to suspicious domains\n- Coordinated timing\n- Generic engagement farming\n\nBEHAVIORAL RED FLAGS:\n- Recently created but tweeting excessively\n- Profile mostly incomplete\n- Random username (e.g., user74839201)\n- No bio or generic bio\n- Extreme follower ratio imbalance\n- Repetitive or automated content\n- Only controversial topics\n- Part of coordinated network\n\nOUTPUT FORMAT (JSON only):\n{\n  \"account_analysis\": {\n    \"handle\": \"@username\" or \"N/A\",\n    \"account_age_days\": 0,\n    \"account_age_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"tweets_per_day\": 0.0,\n    \"frequency_risk\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n    \"profile_completeness\": {\n      \"score\": \"0/7\",\n      \"rating\": \"COMPLETE/PARTIAL/MINIMAL/INCOMPLETE/NOT_APPLICABLE\",\n      \"missing_elements\": [\"list\"] or []\n    },\n    \"follower_ratio\": 0.0,\n    \"follower_analysis\": \"interpretation\",\n    \"content_patterns\": {\n      \"repetitive_content\": false,\n      \"original_vs_retweets\": \"0% original\",\n      \"suspicious_patterns\": [\"list\"] or []\n    }\n  },\n  \"behavioral_red_flags\": [\"list all\"] or [],\n  \"bot_probability\": \"VERY_HIGH/HIGH/MODERATE/LOW/MINIMAL/NOT_APPLICABLE\",\n  \"authenticity_score\": 0-100,\n  \"recommendation\": \"Brief assessment\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nAuthenticity Score = weighted average:\n- Account age (25%)\n- Tweet frequency (20%)\n- Profile completeness (25%)\n- Follower patterns (15%)\n- Content patterns (15%)\n\nIf data not available: authenticity_score = 50 (neutral)\n\nNOTES:\n- Journalists/activists may have high frequency\n- Verified accounts get credibility boost\n- New accounts aren't automatically suspicious\n- Consider cultural context\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=ROLE: Twitter Account Behavior Analyst\n\nINPUT:\n- Account: {{ $json.accountData }}\n- Type: {{ $json.sourceType }}\n\nMISSION: Analyze Twitter account for bot/suspicious behavior.\n\nHANDLE MISSING DATA:\nIf accountData empty or sourceType ≠ 'twitter':\n- All fields = 'NOT_APPLICABLE' or 0\n- bot_probability = 'NOT_APPLICABLE'\n- authenticity_score = 50\n- recommendation = 'Account analysis not available'\n\nANALYSIS (if Twitter data):\n\nMETRIC 1 - Account Age:\n<7 days = VERY HIGH RISK\n7-30 = HIGH RISK\n31-90 = MODERATE RISK\n91-365 = LOW RISK\n>365 = MINIMAL RISK\n\nMETRIC 2 - Tweet Frequency:\n>100/day = VERY HIGH RISK\n50-100 = HIGH RISK\n20-49 = MODERATE RISK\n10-19 = LOW RISK\n<10 = MINIMAL RISK\n\nMETRIC 3 - Profile Completeness (X/7):\nPicture=1, Bio=1, Location=1, Verified=2, Header=1, Website=1\n6-7 = COMPLETE (low)\n4-5 = PARTIAL (moderate)\n2-3 = MINIMAL (high)\n0-1 = INCOMPLETE (very high)\n\nMETRIC 4 - Follower Ratio:\nfollower/following\n>10 = Influential\n0.1-10 = Balanced\n<0.1 + following>1000 = Spam\n>100 + followers<500 = Suspicious\n\nMETRIC 5 - Content Patterns:\nRepetitive, excessive hashtags, only retweets, suspicious links\n\nOUTPUT (JSON only):\n{\n  \"account_analysis\": {\n    \"handle\": \"@username or N/A\",\n    \"account_age_days\": 0,\n    \"account_age_risk\": \"VERY_HIGH|HIGH|MODERATE|LOW|MINIMAL|NOT_APPLICABLE\",\n    \"tweets_per_day\": 0.0,\n    \"frequency_risk\": \"VERY_HIGH|HIGH|MODERATE|LOW|MINIMAL|NOT_APPLICABLE\",\n    \"profile_completeness\": {\n      \"score\": \"0/7\",\n      \"rating\": \"COMPLETE|PARTIAL|MINIMAL|INCOMPLETE|NOT_APPLICABLE\",\n      \"missing_elements\": []\n    },\n    \"follower_ratio\": 0.0,\n    \"follower_analysis\": \"\",\n    \"content_patterns\": {\n      \"repetitive_content\": false,\n      \"original_vs_retweets\": \"0%\",\n      \"suspicious_patterns\": []\n    }\n  },\n  \"behavioral_red_flags\": [],\n  \"bot_probability\": \"VERY_HIGH|HIGH|MODERATE|LOW|MINIMAL|NOT_APPLICABLE\",\n  \"authenticity_score\": 0-100,\n  \"recommendation\": \"\",\n  \"data_available\": true/false\n}\n\nSCORING:\nAge(25%) + Frequency(20%) + Profile(25%) + Followers(15%) + Content(15%)\nIf no data: 50\n\nReturn only JSON.",
         "options": {
-          "systemMessage": "You are a Twitter account behavior analyst. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly. Handle missing data gracefully.",
+          "systemMessage": "You are a Twitter account analyst. Return ONLY valid JSON, no markdown. Handle missing data gracefully.",
           "maxIterations": 1
         }
       },
-      "id": "a4cc40c9-4c1b-4ed9-bf80-94fca01698ad",
+      "id": "3b5c7706-06c6-4933-bfb6-37ef17dc9661",
       "name": "Agent 3 - Twitter Check",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [-544, 448]
+      "position": [
+        -1136,
+        1344
+      ]
     },
     {
       "parameters": {
@@ -110,27 +91,50 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
               "id": "low_confidence_check",
-              "leftValue": "={{ JSON.parse($json.output).confidence }}",
-              "rightValue": "low",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"confidence\": \"low\"",
               "operator": {
                 "type": "string",
-                "operation": "equals"
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "propaganda_check",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"classification\": \"PROPAGANDA\"",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "mixed_check",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"deceptiveness_score\": [6-9][0-9]",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
               }
             }
-          ]
+          ],
+          "combinator": "or"
         },
         "options": {}
       },
-      "id": "9f2df4db-89b7-49c7-ab51-b7da629a284c",
+      "id": "90cd72f8-fc19-41a8-97cf-7309969c875b",
       "name": "Check Agent 1 Confidence",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-336, -464]
+      "position": [
+        -928,
+        432
+      ]
     },
     {
       "parameters": {
@@ -138,113 +142,166 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
               "id": "low_confidence_check",
-              "leftValue": "={{ JSON.parse($json.output).bot_likelihood.confidence }}",
-              "rightValue": "low",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"confidence\": \"low\"",
               "operator": {
                 "type": "string",
-                "operation": "equals"
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "unknown_source",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"rating\": \"UNKNOWN\"",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
               }
             },
             {
               "id": "low_score_check",
-              "leftValue": "={{ JSON.parse($json.output).overall_trustworthiness_score }}",
-              "rightValue": 50,
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"overall_trustworthiness_score\": [0-4]?[0-9]",
               "operator": {
-                "type": "number",
-                "operation": "lt"
+                "type": "string",
+                "operation": "regex"
+              }
+            },
+            {
+              "id": "ae0fddc2-ba36-42e9-a66a-870f4ef6b0f6",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "\"rating\": \"LOW\"",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
               }
             }
           ],
-          "combineOperation": "any"
+          "combinator": "or"
         },
         "options": {}
       },
-      "id": "de556e69-f20e-48ef-9ef5-b4f8ca639575",
+      "id": "76e81a19-4a9d-4d25-98a2-6de95e122d60",
       "name": "Check Agent 2 Confidence",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-224, 208]
+      "position": [
+        -816,
+        1104
+      ],
+      "notesInFlow": false
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Factual Claim Verifier (BACKUP - SECOND OPINION)\n\nORIGINAL CONTENT: {{ $json.tweetText }}\n\nPRIMARY AGENT'S ANALYSIS:\n{{ JSON.stringify($('Agent 1 - Fact Check').item.json.output) }}\n\nPRIMARY MISSION:\nProvide an independent second opinion on the factual claims. Review the primary agent's analysis and verify the claims independently.\n\n⚠️ IMPORTANT INSTRUCTIONS:\n- You are providing a SECOND OPINION - do not simply agree with the primary agent\n- Re-verify the claims using the same authoritative sources\n- You may agree or disagree with the primary agent's verdict\n- Provide your own independent analysis and confidence level\n- If you disagree significantly, explain why in your assessment\n\nANALYSIS PROCESS:\n\nStep 1 - Claim Extraction:\n- Identify all verifiable factual claims (names, dates, events, statistics, quotes)\n- Distinguish between opinions and factual assertions\n- Flag claims that are presented as facts but lack specificity\n\nStep 2 - Claim Verification:\nUse the following sources in priority order:\n1. Professional fact-checking sites:\n   - https://www.snopes.com/\n   - https://www.politifact.com/\n   - https://www.factcheck.org/\n   - https://fullfact.org/\n   - https://factcheck.afp.com/\n\n2. Primary sources (for direct verification):\n   - Official government statements/websites\n   - Court documents and legal filings\n   - Academic papers and peer-reviewed research\n   - Original news reports from reputable outlets\n   - Company official statements\n\n3. Reverse image search (if images mentioned):\n   - https://images.google.com/\n   - https://tineye.com/\n\nStep 3 - Evidence Assessment:\n- Multiple credible sources confirm = VERIFIED\n- Multiple credible sources contradict = FALSE\n- Mixed evidence or lack of coverage = UNVERIFIED\n- Claim is too vague to verify = NOT VERIFIABLE\n\nRED FLAGS FOR MISINFORMATION:\n- Extraordinary claims without extraordinary evidence\n- Out-of-context statistics or quotes\n- Misleading temporal framing (\"just happened\" for old events)\n- Manipulated or misattributed images\n- Claims that contradict expert consensus\n- Emotional language designed to provoke rather than inform\n\nCLASSIFICATION CRITERIA:\n- TRUE: All major claims verified by multiple credible sources\n- MOSTLY TRUE: Core claims verified, minor details unverified\n- MIXED: Some claims true, others false or unverified\n- MOSTLY FALSE: Core claims contradicted or unverified\n- FALSE: Major claims definitively contradicted by evidence\n- UNVERIFIABLE: Claims too vague or lacking sufficient information\n\nOUTPUT FORMAT (JSON only):\n{\n  \"verdict\": \"TRUE/MOSTLY_TRUE/MIXED/MOSTLY_FALSE/FALSE/UNVERIFIABLE\",\n  \"confidence\": \"high/medium/low\",\n  \"verified_claims\": [\n    {\n      \"claim\": \"specific claim text\",\n      \"status\": \"verified/false/unverified\",\n      \"evidence\": \"brief explanation\",\n      \"sources\": [\"source1\", \"source2\"]\n    }\n  ],\n  \"overall_assessment\": \"2-3 sentence summary of findings\",\n  \"fact_check_score\": 0-100\n}\n\nIMPORTANT NOTES:\n- Focus on CLAIMS, not opinions or predictions\n- A tweet can be opinion-heavy but factually accurate\n- Absence of evidence is not evidence of falsehood\n- Be transparent about limitations in verification\n- Return ONLY valid JSON, no additional text",
+        "text": "=ROLE: Fact-Checker (BACKUP)\n\nCONTENT: {{ $json.tweetText }}\n\nPRIMARY ANALYSIS:\n{{ JSON.stringify($('Agent 1 - Fact Check').item.json.output) }}\n\nTOOLS: web_search\n\nMISSION: INDEPENDENT second opinion. Do NOT just agree.\n\nSTEPS:\n1. VERIFY with web_search\n2. CHECK CONTEXT\n3. DETECT PATTERNS\n4. CALCULATE SCORES\n5. CLASSIFY\n\nYou may DISAGREE. Explain why if you do.\n\nOUTPUT (JSON only):\n{\n  \"classification\": \"\",\n  \"fact_accuracy_score\": 0-100,\n  \"deceptiveness_score\": 0-100,\n  \"appears_intentional\": true/false,\n  \"verified_claims\": [],\n  \"false_news_patterns_detected\": [],\n  \"key_omissions\": [],\n  \"manipulation_techniques\": [],\n  \"confidence\": \"\",\n  \"overall_assessment\": \"\",\n  \"recommendation\": \"\",\n  \"comparison_with_primary\": {\n    \"areas_of_agreement\": \"\",\n    \"areas_of_disagreement\": \"\",\n    \"why_different\": \"\"\n  }\n}\n\nUse web_search. Be independent. Return only JSON.",
         "options": {
-          "systemMessage": "You are a backup fact-checker providing independent verification. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly.",
-          "maxIterations": 1
+          "systemMessage": "Backup fact-checker. USE web_search. Be independent. Disagreement is valuable. Return ONLY JSON, no markdown.",
+          "maxIterations": 5
         }
       },
-      "id": "a21e70ff-e3d8-4f02-b395-6ea4f462c736",
+      "id": "de862fac-6edb-4c04-bfc0-67675d26ddcf",
       "name": "Agent 1B - Fact Check Backup",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [-48, -656]
+      "position": [
+        -640,
+        240
+      ],
+      "retryOnFail": true
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Source Trustworthiness Evaluator (BACKUP - SECOND OPINION)\n\nORIGINAL INPUT:\n- Tweet source/domain: {{ $json.tweetSource }}\n- Tweet metadata: {{ $json.tweetMetadata }}\n- Source type: {{ $json.sourceType }}\n\nPRIMARY AGENT'S ANALYSIS:\n{{ JSON.stringify($('Agent 2 - Credibility').item.json.output) }}\n\nPRIMARY MISSION:\nProvide an independent second opinion on source credibility and bot detection. Review the primary agent's analysis and verify independently.\n\n⚠️ IMPORTANT INSTRUCTIONS:\n- You are providing a SECOND OPINION - do not simply agree with the primary agent\n- Re-evaluate the source credibility using the same databases\n- Re-assess bot behavior indicators independently\n- You may agree or disagree with the primary agent's assessment\n- Provide your own independent scores and confidence level\n- If you disagree significantly, explain why in your recommendation\n\n⚠️ HANDLE MISSING DATA:\nIf tweetSource is 'N/A' or metadata is empty (dataset/manual input):\n- Set source_credibility rating to 'UNKNOWN'\n- Set source_credibility score to 50 (neutral)\n- Skip bot behavior detection\n- Set bot_likelihood assessment to 'NOT_APPLICABLE'\n- Set overall_trustworthiness_score to 50\n- Note in recommendation: 'Source verification not available - dataset/manual input'\n- Return the JSON structure with these default values\n\nANALYSIS PROCESS (only if Twitter data available):\n\nPART A - SOURCE CREDIBILITY ASSESSMENT:\n\nStep 1 - Domain/Source Identification:\n- Extract domain or news source mentioned in tweet\n- Identify if tweet links to external source or is original claim\n\nStep 2 - Source Credibility Check:\nUse these databases in order:\n1. https://mediabiasfactcheck.com/ (MBFC ratings)\n2. https://www.newsguardtech.com/ (NewsGuard ratings)\n3. https://www.poynter.org/ifcn/ (IFCN verified signatories)\n4. Wikipedia list of fake news websites\n5. Domain age check via WHOIS lookup\n\nStep 3 - Source Classification:\n- HIGH CREDIBILITY: Established media, fact-checked, transparent methodology\n- MEDIUM CREDIBILITY: Known outlet but with bias or mixed record\n- LOW CREDIBILITY: Flagged by fact-checkers, history of misinformation\n- UNKNOWN: No available ratings, new or obscure source\n\nCREDIBILITY RED FLAGS:\n- Domain flagged by MBFC as \"questionable source\" or \"low credibility\"\n- NewsGuard rating below 60/100\n- Domain created recently (less than 1 year old)\n- Mimics legitimate news site names\n- No clear editorial standards or correction policy\n- History of publishing debunked claims\n\nPART B - BOT BEHAVIOR DETECTION:\n\nAccount Age Signals:\n- SUSPICIOUS: Account less than 30 days old\n- CAUTION: Account 30-90 days old\n- NORMAL: Account older than 90 days\n\nTweet Frequency Analysis:\n- Calculate: tweets per day ratio\n- SUSPICIOUS: >50 tweets per day consistently\n- CAUTION: 20-50 tweets per day\n- NORMAL: <20 tweets per day\n\nProfile Completeness Check:\n- Profile picture present? (1 point)\n- Bio/description present? (1 point)\n- Location specified? (1 point)\n- Verified account? (2 points)\n- Custom header image? (1 point)\n- SCORE: 0-1 = Incomplete, 2-3 = Partial, 4-6 = Complete\n\nBot Behavior Heuristics:\n- Repetitive posting patterns\n- Generic or nonsensical username\n- No original content, only retweets\n- Engagement ratio imbalance\n- Amplification of known misinformation sources\n\nOUTPUT FORMAT (JSON only):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH/MEDIUM/LOW/UNKNOWN/NOT_APPLICABLE\",\n    \"score\": 0-100,\n    \"explanation\": \"brief reasoning\",\n    \"sources_checked\": [\"MBFC\", \"NewsGuard\"] or [],\n    \"red_flags\": [\"list issues\"] or []\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK/MODERATE_RISK/LOW_RISK/HUMAN_LIKELY/NOT_APPLICABLE\",\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [\"list behaviors\"] or [],\n    \"confidence\": \"high/medium/low/not_applicable\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"Brief summary\",\n  \"data_available\": true/false\n}\n\nSCORING LOGIC:\nOverall Trustworthiness = (Source Credibility × 0.6) + (Bot Assessment × 0.4)\n\nBot Assessment scores:\n- Human-likely = 100\n- Low bot risk = 75\n- Moderate bot risk = 40\n- High bot risk = 10\n- Not applicable = 50\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=ROLE: Source Credibility (BACKUP)\n\nINPUT:\n- Text: {{ $json.tweetText }}\n- Source: {{ $json.tweetSource }}\n- Type: {{ $json.sourceType }}\n\nPRIMARY ANALYSIS:\n{{ JSON.stringify($('Agent 2 - Credibility').item.json.output) }}\n\nTOOLS: web_search\n\nMISSION: INDEPENDENT second opinion on source credibility.\n\nSTEPS:\n1. Extract source from text if needed\n2. USE web_search to verify credibility\n3. Re-assess bot behavior if applicable\n4. You may DISAGREE with primary\n\nIf sourceType = \"dataset\" AND no source:\n- rating = \"LOW\" or \"UNKNOWN\"\n- score = 30-50\n\nOUTPUT (JSON only):\n{\n  \"source_credibility\": {\n    \"rating\": \"HIGH|MEDIUM|LOW|UNKNOWN|NOT_APPLICABLE\",\n    \"score\": 0-100,\n    \"source_identified\": \"\",\n    \"source_type\": \"\",\n    \"explanation\": \"\",\n    \"sources_checked\": [],\n    \"red_flags\": [],\n    \"extraction_method\": \"\"\n  },\n  \"bot_likelihood\": {\n    \"assessment\": \"HIGH_RISK|MODERATE_RISK|LOW_RISK|HUMAN_LIKELY|NOT_APPLICABLE\",\n    \"data_available\": true/false,\n    \"account_age_days\": 0,\n    \"tweets_per_day\": 0.0,\n    \"profile_completeness_score\": \"0/6\",\n    \"bot_indicators\": [],\n    \"confidence\": \"\"\n  },\n  \"overall_trustworthiness_score\": 0-100,\n  \"recommendation\": \"\",\n  \"scenario\": \"\",\n  \"comparison_with_primary\": {\n    \"areas_of_agreement\": \"\",\n    \"areas_of_disagreement\": \"\",\n    \"why_different\": \"\"\n  }\n}\n\nUse web_search. Return only JSON.",
         "options": {
-          "systemMessage": "You are a backup credibility analyst providing independent verification. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly.",
-          "maxIterations": 1
+          "systemMessage": "Backup credibility analyst. USE web_search. Be independent. Return ONLY JSON, no markdown.",
+          "maxIterations": 5
         }
       },
-      "id": "75270bcc-393f-4dff-a6ce-41d22291b2cc",
+      "id": "37c311e1-30cc-401e-8398-b2d6e9ae6a1c",
       "name": "Agent 2B - Credibility Backup",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [-48, -64]
+      "position": [
+        -640,
+        768
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Average scores from primary and backup agents\n// This node is triggered by Agent 1B (backup)\n// Get primary agent output from the original Agent 1 node\nconst primaryOutput = $('Agent 1 - Fact Check').item.json.output;\nconst backupOutput = $input.item.json.output;\n\nconst primary = JSON.parse(primaryOutput || '{}');\nconst backup = JSON.parse(backupOutput || '{}');\n\nconst averagedScore = Math.round(((primary.fact_check_score || 0) + (backup.fact_check_score || 0)) / 2);\n\nconst result = {\n  output: JSON.stringify({\n    verdict: primary.confidence === 'high' ? primary.verdict : (backup.confidence === 'high' ? backup.verdict : primary.verdict),\n    confidence: (primary.confidence === 'low' && backup.confidence === 'low') ? 'low' : 'medium',\n    fact_check_score: averagedScore,\n    verified_claims: primary.verified_claims || [],\n    overall_assessment: `Primary: ${primary.overall_assessment}. Backup: ${backup.overall_assessment}`,\n    backup_used: true\n  })\n};\n\nreturn {json: result};"
+        "jsCode": "try {\n  // Get both outputs\n  const backupOutputRaw = $input.item.json.output;\n  const primaryOutputRaw = $('Check Agent 1 Confidence').first().json.output;\n  \n  // Parse function\n  function safeParse(data) {\n    if (!data) return null;\n    if (typeof data === 'object') return data;\n    if (typeof data === 'string') {\n      try {\n        let cleaned = data.trim()\n          .replace(/^```json\\s*/i, '')\n          .replace(/^```\\s*/i, '')\n          .replace(/\\s*```$/i, '');\n        return JSON.parse(cleaned);\n      } catch (e) {\n        return null;\n      }\n    }\n    return null;\n  }\n  \n  const primary = safeParse(primaryOutputRaw);\n  const backup = safeParse(backupOutputRaw);\n  \n  if (!primary || !backup) {\n    return {\n      json: {\n        error: \"Failed to parse\",\n        primaryParsed: !!primary,\n        backupParsed: !!backup\n      }\n    };\n  }\n  \n  // Average scores\n  const avgFactScore = Math.round(\n    ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n  );\n  \n  const avgDeceptScore = Math.round(\n    ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n  );\n  \n  // Determine classification\n  let finalClassification;\n  const avgIntent = primary.appears_intentional || backup.appears_intentional;\n  \n  if (avgFactScore < 40) {\n    finalClassification = avgIntent ? 'DISINFORMATION' : 'MISINFORMATION';\n  } else if (avgFactScore >= 60 && avgDeceptScore > 60) {\n    finalClassification = 'PROPAGANDA';\n  } else if (avgFactScore > 80 && avgDeceptScore < 30) {\n    finalClassification = 'LEGITIMATE';\n  } else {\n    finalClassification = 'BIASED_BUT_FACTUAL';\n  }\n  \n  // Calculate confidence\n  const factDiff = Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50));\n  const deceptDiff = Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50));\n  const avgDiff = (factDiff + deceptDiff) / 2;\n  \n  const finalConfidence = avgDiff <= 10 ? 'high' : avgDiff <= 20 ? 'medium' : 'low';\n  \n  // Recommendation\n  let recommendation;\n  if (finalClassification === 'PROPAGANDA' || finalClassification === 'DISINFORMATION') {\n    recommendation = 'FLAG_AS_FALSE_NEWS';\n  } else if (finalClassification === 'MISINFORMATION' || finalClassification === 'BIASED_BUT_FACTUAL') {\n    recommendation = 'LABEL_AS_BIASED';\n  } else {\n    recommendation = 'NO_ACTION_NEEDED';\n  }\n  \n  // Merge arrays\n  const mergedPatterns = [...new Set([\n    ...(primary.false_news_patterns_detected || []),\n    ...(backup.false_news_patterns_detected || [])\n  ])];\n  \n  const mergedOmissions = [...new Set([\n    ...(primary.key_omissions || []),\n    ...(backup.key_omissions || [])\n  ])];\n  \n  const mergedTechniques = [...new Set([\n    ...(primary.manipulation_techniques || []),\n    ...(backup.manipulation_techniques || [])\n  ])];\n  \n  // Return merged result\n  return {\n    json: {\n      output: JSON.stringify({\n        classification: finalClassification,\n        fact_accuracy_score: avgFactScore,\n        deceptiveness_score: avgDeceptScore,\n        appears_intentional: avgIntent,\n        confidence: finalConfidence,\n        verified_claims: backup.verified_claims || primary.verified_claims || [],\n        false_news_patterns_detected: mergedPatterns,\n        key_omissions: mergedOmissions,\n        manipulation_techniques: mergedTechniques,\n        overall_assessment: `Primary: ${primary.overall_assessment || 'N/A'}. Backup: ${backup.overall_assessment || 'N/A'}. Agreement: ${avgDiff <= 10 ? 'Strong' : 'Moderate'} (diff: ${Math.round(avgDiff)})`,\n        recommendation: recommendation,\n        dual_verification: true,\n        agent_comparison: {\n          fact_score_diff: factDiff,\n          deceptiveness_diff: deceptDiff,\n          avg_difference: Math.round(avgDiff),\n          primary_classification: primary.classification,\n          backup_classification: backup.classification\n        }\n      })\n    }\n  };\n  \n} catch (error) {\n  return {\n    json: {\n      error: error.message,\n      stack: error.stack\n    }\n  };\n}"
       },
-      "id": "12b5899f-73df-43f5-a3da-459f91847fb1",
+      "id": "a1b68e1c-22c0-4383-afb1-5c91e713cc7d",
       "name": "Merge Agent 1 Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [240, -464]
+      "position": [
+        -352,
+        432
+      ],
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Average scores from primary and backup agents\n// This node is triggered by Agent 2B (backup)\n// Get primary agent output from the original Agent 2 node\nconst primaryOutput = $('Agent 2 - Credibility').item.json.output;\nconst backupOutput = $input.item.json.output;\n\nconst primary = JSON.parse(primaryOutput || '{}');\nconst backup = JSON.parse(backupOutput || '{}');\n\nconst averagedScore = Math.round(((primary.overall_trustworthiness_score || 0) + (backup.overall_trustworthiness_score || 0)) / 2);\n\nconst result = {\n  output: JSON.stringify({\n    source_credibility: primary.source_credibility,\n    bot_likelihood: primary.bot_likelihood,\n    overall_trustworthiness_score: averagedScore,\n    recommendation: `Primary: ${primary.recommendation}. Backup: ${backup.recommendation}`,\n    backup_used: true\n  })\n};\n\nreturn {json: result};"
+        "jsCode": "try {\n  // Get both outputs (using same method as Agent 1 merge)\n  const backupOutputRaw = $input.item.json.output;\n  const primaryOutputRaw = $('Check Agent 2 Confidence').first().json.output;\n  \n  // Parse function\n  function safeParse(data) {\n    if (!data) return null;\n    if (typeof data === 'object') return data;\n    if (typeof data === 'string') {\n      try {\n        let cleaned = data.trim()\n          .replace(/^```json\\s*/i, '')\n          .replace(/^```\\s*/i, '')\n          .replace(/\\s*```$/i, '');\n        return JSON.parse(cleaned);\n      } catch (e) {\n        return null;\n      }\n    }\n    return null;\n  }\n  \n  const primary = safeParse(primaryOutputRaw);\n  const backup = safeParse(backupOutputRaw);\n  \n  if (!primary || !backup) {\n    return {\n      json: {\n        error: \"Failed to parse\",\n        primaryParsed: !!primary,\n        backupParsed: !!backup\n      }\n    };\n  }\n  \n  // Average trustworthiness score\n  const avgTrustScore = Math.round(\n    ((primary.overall_trustworthiness_score || 50) + (backup.overall_trustworthiness_score || 50)) / 2\n  );\n  \n  // Determine final rating\n  let finalRating;\n  if (avgTrustScore >= 80) finalRating = 'HIGH';\n  else if (avgTrustScore >= 60) finalRating = 'MEDIUM';\n  else if (avgTrustScore >= 40) finalRating = 'LOW';\n  else finalRating = 'VERY_LOW';\n  \n  const scoreDiff = Math.abs(\n    (primary.overall_trustworthiness_score || 50) - (backup.overall_trustworthiness_score || 50)\n  );\n  \n  // Merge sources and red flags\n  const mergedSourcesChecked = [...new Set([\n    ...(primary.source_credibility?.sources_checked || []),\n    ...(backup.source_credibility?.sources_checked || [])\n  ])];\n  \n  const mergedRedFlags = [...new Set([\n    ...(primary.source_credibility?.red_flags || []),\n    ...(backup.source_credibility?.red_flags || [])\n  ])];\n  \n  // Return merged result\n  return {\n    json: {\n      output: JSON.stringify({\n        source_credibility: {\n          rating: finalRating,\n          score: avgTrustScore,\n          source_identified: primary.source_credibility?.source_identified || backup.source_credibility?.source_identified || 'unknown',\n          source_type: primary.source_credibility?.source_type || backup.source_credibility?.source_type || 'unknown',\n          explanation: `Primary: ${primary.source_credibility?.explanation || 'N/A'}. Backup: ${backup.source_credibility?.explanation || 'N/A'}`,\n          sources_checked: mergedSourcesChecked,\n          red_flags: mergedRedFlags,\n          extraction_method: primary.source_credibility?.extraction_method || backup.source_credibility?.extraction_method || 'none'\n        },\n        bot_likelihood: primary.bot_likelihood || backup.bot_likelihood || {\n          assessment: 'NOT_APPLICABLE',\n          data_available: false\n        },\n        overall_trustworthiness_score: avgTrustScore,\n        recommendation: `Average trustworthiness: ${avgTrustScore}/100. Agreement: ${scoreDiff === 0 ? 'Perfect' : scoreDiff <= 15 ? 'Strong' : 'Moderate'}`,\n        scenario: primary.scenario || backup.scenario || 'unknown',\n        dual_verification: true,\n        agent_comparison: {\n          score_difference: scoreDiff,\n          primary_score: primary.overall_trustworthiness_score,\n          backup_score: backup.overall_trustworthiness_score,\n          primary_rating: primary.source_credibility?.rating,\n          backup_rating: backup.source_credibility?.rating\n        }\n      })\n    }\n  };\n  \n} catch (error) {\n  return {\n    json: {\n      error: error.message,\n      stack: error.stack\n    }\n  };\n}"
       },
-      "id": "d65b10ef-4eda-47b6-8eb1-88b2b2a50912",
+      "id": "5ad8ea74-c8b3-4270-9ed7-6f87f7306b8a",
       "name": "Merge Agent 2 Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [240, -64]
+      "position": [
+        -352,
+        832
+      ]
     },
     {
-      "parameters": {
-        "mode": "append",
-        "options": {}
-      },
-      "id": "827d1183-25a7-4770-bc1a-ea96042d6eca",
+      "parameters": {},
+      "id": "274b5bdf-1a7d-4223-b947-057f219dbd2b",
       "name": "Merge Agents 1 & 2",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [704, -64]
+      "position": [
+        112,
+        832
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "6f9f98bd-2251-4cb2-abd3-efd575b71a18",
+      "name": "Merge with Agent 3",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        144,
+        1120
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=ROLE: Final Misinformation Risk Assessor\n\nINPUT:\n- Fact-check results: {{ $json[0] }}\n- Credibility results: {{ $json[1] }}\n- Account analysis: {{ $json[2] }}\n\nPRIMARY MISSION:\nSynthesize all agent outputs to produce final misinformation risk classification.\n\n⚠️ HANDLE MISSING DATA:\nIf credibility or account analysis shows 'NOT_APPLICABLE' or 'data_available: false':\n- Use only available data for risk calculation\n- Adjust weights: If only fact-check available, use 100% weight on fact-check\n- Note in summary that analysis is based on limited data\n- Still provide valid risk assessment\n\nDECISION FRAMEWORK:\n\nSTEP 1 - Data Integration:\nCollect scores from agents:\n- Fact Check Score (0-100) - ALWAYS AVAILABLE\n- Source Trustworthiness Score (0-100) - May be N/A (use 50 if N/A)\n- Account Authenticity Score (0-100) - May be N/A (use 50 if N/A)\n\nSTEP 2 - Weighted Risk Calculation:\nIF all data available:\n  Risk Score = (Fact Check × 0.50) + (Source Credibility × 0.30) + (Account Authenticity × 0.20)\nIF only fact-check available:\n  Risk Score = Fact Check Score (100% weight)\nIF fact-check + one other:\n  Risk Score = (Fact Check × 0.70) + (Other × 0.30)\n\nSTEP 3 - Risk Classification:\n\nHIGH RISK (0-40):\n- Claims FALSE or MOSTLY FALSE\n- Source LOW credibility OR HIGH bot likelihood\n- Multiple red flags\n- Potential for significant harm\nActions: Flag for immediate review, warning label, alert moderation\n\nMEDIUM RISK (41-70):\n- Claims MIXED or UNVERIFIABLE\n- Source MEDIUM credibility OR MODERATE bot risk\n- Some red flags\n- Could mislead but not clearly false\nActions: Add context label, monitor engagement, reduce amplification\n\nLOW RISK (71-100):\n- Claims TRUE or MOSTLY TRUE\n- Source HIGH credibility AND LOW bot risk\n- Account appears authentic\n- Unlikely to cause harm\nActions: No intervention needed\n\nSTEP 4 - Contextual Adjustments:\n\nINCREASE risk if:\n- Urgent breaking news\n- Public health, elections, safety topics\n- Large engagement (>1000 shares)\n- Coordinated campaign\n- Emotionally manipulative language\n\nDECREASE risk if:\n- Marked as opinion/satire\n- Limited reach\n- History of reliable info\n- Nuanced content\n\nSTEP 5 - Confidence Assessment:\n- HIGH: All agents agree, clear evidence, full data available\n- MEDIUM: Some conflicting signals OR partial data available\n- LOW: Limited data, need human review\n\nOUTPUT FORMAT (JSON only):\n{\n  \"final_assessment\": {\n    \"risk_level\": \"HIGH/MEDIUM/LOW\",\n    \"composite_score\": 0-100,\n    \"confidence\": \"HIGH/MEDIUM/LOW\",\n    \"data_completeness\": \"FULL/PARTIAL/FACT_CHECK_ONLY\"\n  },\n  \"contributing_factors\": {\n    \"fact_check_verdict\": \"verdict\",\n    \"fact_check_score\": 0,\n    \"source_credibility\": \"rating\",\n    \"source_score\": 0,\n    \"account_authenticity\": \"rating\",\n    \"account_score\": 0\n  },\n  \"key_concerns\": [\"list 2-3 red flags\"],\n  \"mitigating_factors\": [\"list factors\"],\n  \"recommended_action\": {\n    \"primary_action\": \"specific recommendation\",\n    \"rationale\": \"why\",\n    \"urgency\": \"immediate/within_24h/monitor/none\"\n  },\n  \"human_review_needed\": false,\n  \"human_review_reason\": \"explanation if true\",\n  \"summary\": \"1-2 sentence explanation\"\n}\n\nSPECIAL CASES:\n- Fact FALSE + Source HIGH → Human review\n- Account BOT + Fact TRUE → MEDIUM risk\n- Account AUTHENTIC + Fact FALSE → HIGH risk\n- Any LOW confidence → Human review\n- Partial data available → Note in summary, adjust confidence to MEDIUM\n\nESCALATION CRITERIA:\n- Risk HIGH + engagement >10,000\n- Imminent harm content\n- Coordinated campaign\n- Legal implications\n- All agents LOW confidence\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "={\n  \"factCheck\": {...},\n  \"sourceCheck\": {...},\n  \"accountCheck\": {...}\n}\n```\n\n**Updated Agent 4 prompt:**\n```\nROLE: Final Misinformation Risk Assessor\n\nINPUT:\n- Fact-check results: {{ $json.factCheck }}\n- Source credibility: {{ $json.sourceCheck }}\n- Account analysis: {{ $json.accountCheck }}\n\nMISSION: Synthesize all agent outputs → final risk classification\n\n═══════════════════════════════════════════════════════════════\nSTEP 1: EXTRACT DATA\n═══════════════════════════════════════════════════════════════\n\nFrom fact-check:\n- classification = {{ $json.factCheck.classification }}\n- fact_score = {{ $json.factCheck.fact_accuracy_score }}\n- deceptiveness = {{ $json.factCheck.deceptiveness_score }}\n- intentional = {{ $json.factCheck.appears_intentional }}\n\nFrom source:\n- source_rating = {{ $json.sourceCheck.source_credibility.rating }}\n- source_score = {{ $json.sourceCheck.overall_trustworthiness_score }}\n\nFrom account:\n- bot_assessment = {{ $json.accountCheck.bot_probability }}\n- account_score = {{ $json.accountCheck.authenticity_score }}\n\n═══════════════════════════════════════════════════════════════\nSTEP 2: CALCULATE COMPOSITE SCORE\n═══════════════════════════════════════════════════════════════\n\nIF bot_assessment = \"NOT_APPLICABLE\":\n  composite = (fact_score × 0.60) + (source_score × 0.40)\n  data_completeness = \"PARTIAL\"\nELSE:\n  composite = (fact_score × 0.50) + (source_score × 0.30) + (account_score × 0.20)\n  data_completeness = \"FULL\"\n\n═══════════════════════════════════════════════════════════════\nSTEP 3: RISK CLASSIFICATION\n═══════════════════════════════════════════════════════════════\n\nBase:\n- 0-40 = HIGH RISK\n- 41-70 = MEDIUM RISK\n- 71-100 = LOW RISK\n\nContextual adjustments (INCREASE to HIGH if):\n- classification = \"PROPAGANDA\" OR \"DISINFORMATION\"\n- intentional = true AND deceptiveness > 60\n- source_rating = \"LOW\" OR \"VERY_LOW\"\n\n═══════════════════════════════════════════════════════════════\nSTEP 4: BUILD OUTPUT\n═══════════════════════════════════════════════════════════════\n\n{\n  \"final_assessment\": {\n    \"risk_level\": \"HIGH|MEDIUM|LOW\",\n    \"composite_score\": calculated_number,\n    \"confidence\": \"HIGH|MEDIUM|LOW\",\n    \"data_completeness\": \"FULL|PARTIAL|FACT_CHECK_ONLY\"\n  },\n  \"contributing_factors\": {\n    \"fact_check_classification\": use actual classification,\n    \"fact_check_score\": use actual score,\n    \"source_credibility\": use actual rating,\n    \"source_score\": use actual score,\n    \"account_authenticity\": use actual assessment,\n    \"account_score\": use actual score\n  },\n  \"key_concerns\": [\"list based on actual data\"],\n  \"mitigating_factors\": [\"list based on actual data\"],\n  \"recommended_action\": {\n    \"primary_action\": \"specific action\",\n    \"rationale\": \"based on actual classification and scores\",\n    \"urgency\": \"immediate|within_24h|monitor|none\"\n  },\n  \"human_review_needed\": true/false,\n  \"summary\": \"Use ACTUAL data: classification, scores, ratings\"\n}\n\nCRITICAL:\n- Use data from {{ $json.factCheck }}, {{ $json.sourceCheck }}, {{ $json.accountCheck }}\n- Don't make up numbers\n- Return ONLY JSON\n\nReturn ONLY valid JSON, no markdown.",
         "options": {
-          "systemMessage": "You are a final decision agent for misinformation risk assessment. CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or explanations. Do not wrap the JSON in ```json or ``` markers. Return the raw JSON object directly. Handle missing data gracefully.",
+          "systemMessage": "You are final decision agent for misinformation risk. Return ONLY valid JSON, no markdown. Handle missing data gracefully.",
           "maxIterations": 1
         }
       },
-      "id": "f4122832-91fa-471f-ae1e-e3302cf2f750",
+      "id": "deed2f0b-ecad-44fb-aee3-b0189e8ff018",
       "name": "Agent 4 - Decision",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
-      "position": [960, -128]
+      "position": [
+        608,
+        736
+      ],
+      "retryOnFail": true
     },
     {
       "parameters": {
@@ -252,21 +309,27 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "e737c938-a33b-45f5-a9cc-fc72565b9a78",
+      "id": "6d3c8e2a-8351-4c47-8bf7-df4b52077794",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1264, -128]
+      "position": [
+        912,
+        736
+      ],
+      "disabled": true
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
-      "position": [-64, -512],
-      "id": "3ceb00e0-f2ab-4b4d-a30d-f9652db5c73d",
+      "position": [
+        -656,
+        384
+      ],
+      "id": "bfe4651f-03d1-4ec3-9574-235d4a1d0c2e",
       "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
@@ -277,13 +340,15 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
-      "position": [-48, 144],
-      "id": "7b536895-9991-4fa3-8679-cd66f3749877",
+      "position": [
+        -640,
+        944
+      ],
+      "id": "da02d489-8210-4e00-aa9d-c78df0cc4454",
       "name": "Google Gemini Chat Model2",
       "credentials": {
         "googlePalmApi": {
@@ -299,8 +364,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
-      "position": [-608, -240],
-      "id": "5fac4048-4629-48c4-a96d-f2c6526899a9",
+      "position": [
+        -1200,
+        656
+      ],
+      "id": "12b856b2-0999-4a8b-80c3-3251624aa3da",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -316,8 +384,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
-      "position": [-592, 160],
-      "id": "7e568e43-453e-4832-a122-a8b4112079f3",
+      "position": [
+        -1184,
+        1056
+      ],
+      "id": "5c0118bf-a62d-41dc-a757-5bd2e91548e5",
       "name": "Groq Chat Model1",
       "credentials": {
         "groqApi": {
@@ -333,8 +404,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
-      "position": [-544, 640],
-      "id": "5e06b277-4076-48d0-b9e7-d2ae96634265",
+      "position": [
+        -1136,
+        1536
+      ],
+      "id": "e5af6292-2c35-40e4-a575-044f0878cdac",
       "name": "Groq Chat Model2",
       "credentials": {
         "groqApi": {
@@ -345,13 +419,15 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
-      "position": [960, 64],
-      "id": "5eed4734-97a3-4ff1-bab6-c9964af288cc",
+      "position": [
+        608,
+        928
+      ],
+      "id": "b21cf671-0ef7-4e4a-97bb-320d64757fef",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -362,24 +438,18 @@
     },
     {
       "parameters": {
-        "mode": "append",
-        "options": {}
-      },
-      "id": "9df994ed-7958-4355-b294-047e68d10b3d",
-      "name": "Merge with Agent 3",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [800, 112]
-    },
-    {
-      "parameters": {
-        "updates": ["messages"],
+        "updates": [
+          "messages"
+        ],
         "options": {}
       },
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
-      "position": [-1936, -432],
-      "id": "210062d5-c62d-4cac-a29d-fb1cf01ade1e",
+      "position": [
+        -2528,
+        464
+      ],
+      "id": "b000a5ad-768e-4d9b-a83b-2344faa74993",
       "name": "WhatsApp Trigger",
       "webhookId": "fe839e08-c09c-499f-a83c-554e1954cfc1",
       "credentials": {
@@ -391,20 +461,37 @@
     },
     {
       "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item;\nconst body = item.json.messages?.[0]?.text?.body || 'F600';\n\nconst datasetType = body.charAt(0).toUpperCase();\nconst idx = parseInt(body.substring(1)) || 600;\nconst dataset = datasetType === 'T' ? 'true-news' : 'false-news';\n\nreturn {\n  json: {\n    datasetType: datasetType,\n    idx: idx,\n    dataset: dataset,\n    tableId: dataset,\n    rowId: idx\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2208,
+        464
+      ],
+      "id": "a5a3f107-65d1-45d9-8812-719db445d869",
+      "name": "WhatsApp Input Parser"
+    },
+    {
+      "parameters": {
         "promptType": "define",
-        "text": "=Use the supabase tool to get the data from the dataset.\n\nInput context:\n- Dataset: {{ $json.dataset }}\n- Dataset Type: {{ $json.datasetType }}\n- ID: {{ $json.idx }}\n\nFormat the output as JSON with this structure:\n{\n  \"text\": \"the text field from supabase\",\n  \"tweetSource\": \"{{ $json.dataset }}\",\n  \"sourceType\": \"dataset\",\n  \"tweetMetadata\": {},\n  \"accountData\": {},\n  \"supabase_id\": {{ $json.idx }},\n  \"dataset\": \"{{ $json.dataset }}\",\n  \"datasetType\": \"{{ $json.datasetType }}\",\n  \"title\": \"title field from supabase if exists\",\n  \"subject\": \"subject field from supabase if exists\",\n  \"date\": \"date field from supabase if exists\"\n}\n\nReturn ONLY valid JSON, no additional text.",
+        "text": "=Use the supabase tool to get data from the dataset.\n\nInput:\n- Table: {{ $json.tableId }}\n- Dataset Type: {{ $json.datasetType }}\n- Row ID: {{ $json.rowId }}\n\nFormat output as JSON:\n{\n  \"text\": \"the text field from supabase\",\n  \"tweetSource\": \"{{ $json.tableId }}\",\n  \"sourceType\": \"dataset\",\n  \"tweetMetadata\": {},\n  \"accountData\": {},\n  \"supabase_id\": {{ $json.rowId }},\n  \"dataset\": \"{{ $json.tableId }}\",\n  \"datasetType\": \"{{ $json.datasetType }}\",\n  \"title\": \"title field if exists\",\n  \"subject\": \"subject field if exists\",\n  \"date\": \"date field if exists\"\n}\n\nReturn only valid JSON.",
         "options": {
-          "systemMessage": "You are a data formatting assistant. Extract data from Supabase and format it as specified JSON structure. Return only valid JSON."
+          "systemMessage": "You are a data formatter. Extract from Supabase and format as JSON. Return only valid JSON.",
+          "maxIterations": 3
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
-      "position": [-1328, -432],
-      "id": "98bd947f-6902-4428-a4bc-a443078efed6",
-      "name": "AI Agent1",
+      "typeVersion": 1.6,
+      "position": [
+        -1920,
+        464
+      ],
+      "id": "911050d6-87ac-43f7-9a83-2019f1353eda",
+      "name": "AI Agent - Supabase Formatter",
       "executeOnce": false,
-      "alwaysOutputData": true,
-      "notesInFlow": false
+      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -421,10 +508,12 @@
       },
       "type": "n8n-nodes-base.supabaseTool",
       "typeVersion": 1,
-      "position": [-1184, -208],
-      "id": "3fba3b07-2484-4497-b57a-ae39f98ea09f",
+      "position": [
+        -1776,
+        688
+      ],
+      "id": "0df8bd1e-265a-4d0f-8f0d-6833806a1144",
       "name": "Get row from Dataset (Supabase)",
-      "notesInFlow": false,
       "credentials": {
         "supabaseApi": {
           "id": "Cgrz5nOdspcCgDyr",
@@ -434,15 +523,17 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
         "options": {
           "maxOutputTokens": 1000
         }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
-      "position": [-1328, -192],
-      "id": "409ad288-170c-48db-acc1-82ddc8a84ca4",
+      "position": [
+        -1920,
+        704
+      ],
+      "id": "49d83977-a111-40de-882e-c008910accd5",
       "name": "Google Gemini Chat Model3",
       "credentials": {
         "googlePalmApi": {
@@ -452,37 +543,42 @@
       }
     },
     {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const item = $input.item;\nconst body = item.json.messages?.[0]?.text?.body || 'F600';\n\n// Extract dataset type (T or F) and index\nconst datasetType = body.charAt(0).toUpperCase();\nconst idx = parseInt(body.substring(1)) || 600;\n\nreturn {\n  json: {\n    datasetType: datasetType,\n    idx: idx,\n    dataset: datasetType === 'T' ? 'true-news' : 'false-news'\n  },\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [-1616, -432],
-      "id": "4bd742a4-8a72-429e-918d-5832b859a116",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "mode": "append",
-        "options": {}
-      },
-      "id": "364f08c6-e0ca-4dbd-8aef-9d137b7006e5",
+      "parameters": {},
+      "id": "c686d4be-ed09-47fc-8706-e28a87b53de2",
       "name": "Merge Dataset & Twitter Inputs",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [-1008, 32]
+      "position": [
+        -1600,
+        928
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Format data for Parse Input Data node\nconst item = $input.item.json;\n\n// Check if this is Dataset data or Twitter data\nconst isDataset = item.dataset || item.text || item.tweetText;\nconst isTwitter = item.body;\n\nif (isDataset) {\n  // Dataset flow - data already formatted by AI Agent1\n  return {\n    json: {\n      tweetText: item.text || '',\n      tweetSource: item.tweetSource || item.dataset || 'N/A',\n      tweetMetadata: item.tweetMetadata || {},\n      accountData: item.accountData || {},\n      sourceType: item.sourceType || 'dataset',\n      supabase_id: item.supabase_id,\n      dataset: item.dataset,\n      datasetType: item.datasetType,\n      title: item.title,\n      subject: item.subject,\n      date: item.date\n    }\n  };\n} else if (isTwitter) {\n  // Twitter flow - pass through with proper structure\n  return {\n    json: {\n      tweetText: item.body.tweetText || '',\n      tweetSource: item.body.tweetSource || 'N/A',\n      tweetMetadata: item.body.tweetMetadata || {},\n      accountData: item.body.accountData || {},\n      sourceType: 'twitter'\n    }\n  };\n} else {\n  // Fallback - treat as text input\n  return {\n    json: {\n      tweetText: JSON.stringify(item),\n      tweetSource: 'N/A',\n      tweetMetadata: {},\n      accountData: {},\n      sourceType: 'manual'\n    }\n  };\n}"
+        "jsCode": "const item = $input.item.json;\n\nconst isDataset = item.dataset || item.text || item.tweetText;\nconst isTwitter = item.body;\n\nif (isDataset) {\n  return {\n    json: {\n      tweetText: item.text || '',\n      tweetSource: item.tweetSource || item.dataset || 'N/A',\n      tweetMetadata: item.tweetMetadata || {},\n      accountData: item.accountData || {},\n      sourceType: item.sourceType || 'dataset',\n      supabase_id: item.supabase_id,\n      dataset: item.dataset,\n      datasetType: item.datasetType,\n      title: item.title,\n      subject: item.subject,\n      date: item.date\n    }\n  };\n} else if (isTwitter) {\n  return {\n    json: {\n      tweetText: item.body.tweetText || '',\n      tweetSource: item.body.tweetSource || 'N/A',\n      tweetMetadata: item.body.tweetMetadata || {},\n      accountData: item.body.accountData || {},\n      sourceType: 'twitter'\n    }\n  };\n} else {\n  return {\n    json: {\n      tweetText: JSON.stringify(item),\n      tweetSource: 'N/A',\n      tweetMetadata: {},\n      accountData: {},\n      sourceType: 'manual'\n    }\n  };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-1008, 192],
-      "id": "format-input-data",
+      "position": [
+        -1600,
+        1088
+      ],
+      "id": "d9164530-3292-4724-8558-383bf02b90a5",
       "name": "Format Input Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all 3 agent outputs into one structured object\nconst allInputs = $input.all();\n\n// Safe parse function\nfunction safeParse(data) {\n  if (!data) return null;\n  if (typeof data === 'object' && !Array.isArray(data)) return data;\n  if (typeof data === 'string') {\n    try {\n      let cleaned = data.trim()\n        .replace(/^```json\\s*/i, '')\n        .replace(/^```\\s*/i, '')\n        .replace(/\\s*```$/i, '');\n      return JSON.parse(cleaned);\n    } catch (e) {\n      console.error('Parse error:', e);\n      return null;\n    }\n  }\n  return null;\n}\n\n// Parse each input\nconst factCheck = safeParse(allInputs[0]?.json?.output);\nconst sourceCheck = safeParse(allInputs[1]?.json?.output);\nconst accountCheck = safeParse(allInputs[2]?.json?.output);\n\n// Return combined data\nreturn {\n  json: {\n    factCheck: factCheck || {\n      classification: 'UNVERIFIABLE',\n      fact_accuracy_score: 50,\n      deceptiveness_score: 50,\n      appears_intentional: false,\n      confidence: 'low'\n    },\n    sourceCheck: sourceCheck || {\n      source_credibility: { rating: 'UNKNOWN', score: 50 },\n      overall_trustworthiness_score: 50\n    },\n    accountCheck: accountCheck || {\n      bot_probability: 'NOT_APPLICABLE',\n      authenticity_score: 50,\n      data_available: false\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        928
+      ],
+      "id": "2a7398ff-ed5e-4baa-906e-35859a71b086",
+      "name": "Combine for Agent 4"
     }
   ],
   "pinData": {},
@@ -537,6 +633,17 @@
             "node": "Check Agent 2 Confidence",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 3 - Twitter Check": {
+      "main": [
+        [
+          {
+            "node": "Merge with Agent 3",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -632,6 +739,17 @@
         ]
       ]
     },
+    "Merge with Agent 3": {
+      "main": [
+        [
+          {
+            "node": "Combine for Agent 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Agent 4 - Decision": {
       "main": [
         [
@@ -709,34 +827,12 @@
         ]
       ]
     },
-    "Agent 3 - Twitter Check": {
-      "main": [
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
         [
           {
-            "node": "Merge with Agent 3",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge with Agent 3": {
-      "main": [
-        [
-          {
-            "node": "Agent 4 - Decision",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "WhatsApp Trigger": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
+            "node": "AI Agent - Supabase Formatter",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -746,36 +842,36 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "AI Agent - Supabase Formatter",
             "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Code in JavaScript": {
+    "WhatsApp Trigger": {
       "main": [
         [
           {
-            "node": "AI Agent1",
+            "node": "WhatsApp Input Parser",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model3": {
-      "ai_languageModel": [
+    "WhatsApp Input Parser": {
+      "main": [
         [
           {
-            "node": "AI Agent1",
-            "type": "ai_languageModel",
+            "node": "AI Agent - Supabase Formatter",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent1": {
+    "AI Agent - Supabase Formatter": {
       "main": [
         [
           {
@@ -807,12 +903,28 @@
           }
         ]
       ]
+    },
+    "Combine for Agent 4": {
+      "main": [
+        [
+          {
+            "node": "Agent 4 - Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
+  "versionId": "37d137f9-bf8f-4b32-be63-8880aebb8e0a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "121d8e9b68760b992e165904fd6888a7f1a58413d4a67cf93ef67eae09ef6b3b"
+  },
+  "id": "5cq2jLFtntuho2LS",
   "tags": []
 }
-
