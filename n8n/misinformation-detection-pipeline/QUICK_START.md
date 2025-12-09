@@ -2,6 +2,8 @@
 
 Get your misinformation detection pipeline running in 5 minutes!
 
+**Updated:** December 9, 2025 - Now using `workflow-misinformation-detection-fixed.json` ⭐
+
 ---
 
 ## ✅ Prerequisites

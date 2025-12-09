@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 8, 2025  
-**Version:** 3.0 - Advanced False News Classification  
-**Status:** WhatsApp Active ✅ | Twitter Ready ⏳
+**Last Updated:** December 9, 2025  
+**Version:** 3.1 - Fixed Twitter Integration & Individual Processing  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅
 
 ---
 
@@ -12,7 +12,10 @@
 - **AI Context:** See [AI_CONTEXT.md](AI_CONTEXT.md) (for AI assistants)
 - **Agent Prompts:** See [AGENT_PROMPTS.md](AGENT_PROMPTS.md)
 - **Test Cases:** See [EXAMPLES.md](EXAMPLES.md)
-- **Workflow File:** `workflow-twitter-whatsapp-combined.json`
+- **Workflow Files:**
+  - **Main:** `workflow-misinformation-detection-fixed.json` ⭐ (RECOMMENDED)
+  - **Legacy:** `workflow-twitter-whatsapp-combined.json`
+  - **Standalone:** `workflow-viral-tweets-easy-scraper.json`
 
 ---
 
@@ -22,9 +25,11 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-twitter-whatsapp-combined.json** | 36K | n8n workflow definition | Import into n8n to set up |
-| **README.md** | 9.0K | Project overview (this file) | First time reading about project |
-| **QUICK_START.md** | 8.9K | 5-minute setup guide | Installing and testing |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 38K | Fixed n8n workflow (RECOMMENDED) | Import into n8n - all fixes included |
+| **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
+| **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
+| **README.md** | 10K | Project overview (this file) | First time reading about project |
+| **QUICK_START.md** | 9K | 5-minute setup guide | Installing and testing |
 | **AI_CONTEXT.md** | 19K | Context for AI assistants | Starting new AI chat sessions |
 | **AGENT_PROMPTS.md** | 19K | All 6 agent prompts | Customizing agent behavior |
 | **EXAMPLES.md** | 16K | Test cases & validation | Testing and validation |
@@ -38,13 +43,32 @@
 
 ---
 
+## 🆕 What's New in v3.1 (December 9, 2025)
+
+### ✅ Fixed Issues:
+- **Manual Trigger Error** - Fixed "Cannot assign to read only property" error
+- **Item Limit Not Working** - Now respects limit setting (2, 5, 10 tweets)
+- **Duplicate Items** - Fixed duplicate processing by bypassing merge node
+- **Batch Processing** - Added "Split Out Items" node for individual tweet processing
+- **Field Mapping** - Flexible mapping for different Twitter API response formats
+
+### 🎯 New Features:
+- **Debug Logging** - Console logs for API response structure
+- **Error Handling** - Try-catch blocks with fallback values
+- **Standalone Scraper** - Separate workflow for testing Twitter API
+
+---
+
 ## 🎯 What This Does
 
 A **multi-agent AI system** that detects misinformation in:
 - **Dataset messages** (manual input via WhatsApp - currently active)
   - Supports both **true-news** and **false-news** datasets
   - Input format: `T123` (true-news) or `F456` (false-news)
-- **Twitter/X tweets** (webhook - ready for testing)
+- **Twitter/X tweets** (automated scraping - FIXED ✅)
+  - Fetches viral tweets every 4 hours OR manual trigger
+  - Processes each tweet individually through the pipeline
+  - Configurable limit (2, 5, 10, etc.)
 
 ### How It Works:
 
@@ -97,24 +121,52 @@ Agent 4 decides (70% fact + 30% source)
 Return risk assessment
 ```
 
-### Twitter Flow (Ready):
+### Twitter Flow (FIXED ✅):
 ```
-Twitter Webhook (POST)
+Manual Trigger OR Every 4 Hours
     ↓
-Parse tweet + metadata
+Set Limit (2, 5, 10 tweets)
     ↓
-Agents 1, 2, 3 analyze (parallel)
+Search Viral News Tweets (RapidAPI)
+    ↓
+Add Limit to Response (pass limit forward)
+    ↓
+Get Top N Most Viral (rank by virality score)
+    ↓
+Split Out Items (process individually) ⭐ NEW
+    ↓
+Format Input Data
+    ↓
+Parse Input Data
+    ↓
+Agents 1, 2, 3 analyze (parallel) - ONE TWEET AT A TIME
     ↓
 [Backup agents if needed]
     ↓
 Agent 4 decides (50% fact + 30% source + 20% account)
     ↓
-Return risk assessment
+Return risk assessment (per tweet)
 ```
+
+**Key Improvements:**
+- ✅ Each tweet processed individually (not in batch)
+- ✅ Configurable limit actually works
+- ✅ No duplicate processing
+- ✅ Proper error handling
 
 ---
 
-## 🆕 Recent Updates (v3.0 - Dec 8, 2025)
+## 🆕 Recent Updates
+
+### v3.1 (Dec 9, 2025) - Twitter Integration Fixed
+- Fixed manual trigger error
+- Added "Split Out Items" for individual processing
+- Fixed item limit not being respected
+- Removed duplicate processing
+- Added flexible field mapping for Twitter API
+- Added debug logging
+
+### v3.0 (Dec 8, 2025) - Advanced False News Classification
 
 ### 🚀 Major Upgrade: Advanced False News Classification
 

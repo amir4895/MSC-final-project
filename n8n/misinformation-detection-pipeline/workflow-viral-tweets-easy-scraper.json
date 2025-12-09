@@ -1,0 +1,80 @@
+{
+  "name": "Viral Tweets - Easy Twitter Search Scraper",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/web.harvester~easy-twitter-search-scraper/runs?token=apify_api_dJTmQI5N9CW9NGJsbbOkuGtjTCslzw3XEjZU",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "{\n  \"searchQuery\": \"min_faves:1000 min_retweets:300\",\n  \"maxTweets\": 50,\n  \"language\": \"en\",\n  \"sortBy\": \"Top\"\n}",
+        "options": {}
+      },
+      "id": "c2",
+      "name": "Start Scraper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "amount": 90
+      },
+      "id": "c3",
+      "name": "Wait 90s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [680, 300],
+      "webhookId": "wait-v5"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apify.com/v2/datasets/{{ $('Start Scraper').item.json.data.defaultDatasetId }}/items?token=apify_api_dJTmQI5N9CW9NGJsbbOkuGtjTCslzw3XEjZU",
+        "options": {}
+      },
+      "id": "c4",
+      "name": "Get Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst tweets = [];\nconst data = items[0]?.json || [];\nconst tweetArray = Array.isArray(data) ? data : [data];\n\nconsole.log('📊 Total items received:', tweetArray.length);\n\n// Check if demo data\nif (tweetArray.length > 0 && tweetArray[0].demo === true) {\n  console.log('❌ Demo data detected');\n  return [{\n    json: {\n      error: 'DEMO_DATA',\n      message: 'This actor returned demo data. Try next actor.',\n      actor: 'web.harvester/easy-twitter-search-scraper'\n    }\n  }];\n}\n\nfor (const tweet of tweetArray) {\n  const id = tweet.id || tweet.id_str || tweet.tweetId;\n  const text = tweet.text || tweet.full_text || tweet.tweet_text || '';\n  \n  if (!id || !text) {\n    console.log('⚠️ Skipping invalid tweet:', Object.keys(tweet));\n    continue;\n  }\n  \n  const retweets = tweet.retweetCount || tweet.retweet_count || 0;\n  const likes = tweet.likeCount || tweet.favoriteCount || tweet.favorite_count || 0;\n  const replies = tweet.replyCount || tweet.reply_count || 0;\n  const quotes = tweet.quoteCount || tweet.quote_count || 0;\n  const viralityScore = (retweets * 2) + likes + (replies * 3) + (quotes * 2);\n  \n  const user = tweet.user || tweet.author || {};\n  \n  tweets.push({\n    tweet_id: id,\n    tweet_text: text,\n    tweet_url: tweet.url || tweet.tweet_url || `https://twitter.com/i/web/status/${id}`,\n    author_username: user.username || user.screen_name || user.userName || 'N/A',\n    author_name: user.name || user.displayName || 'N/A',\n    author_verified: user.verified || user.isVerified || false,\n    author_followers: user.followersCount || user.followers_count || 0,\n    retweets: retweets,\n    likes: likes,\n    replies: replies,\n    virality_score: viralityScore,\n    created_at: tweet.createdAt || tweet.created_at\n  });\n}\n\nconsole.log('✅ Valid tweets found:', tweets.length);\n\nif (tweets.length === 0) {\n  return [{\n    json: {\n      error: 'NO_TWEETS',\n      message: 'No valid tweets found. Check raw data or try next actor.',\n      raw_sample: tweetArray[0]\n    }\n  }];\n}\n\ntweets.sort((a, b) => b.virality_score - a.virality_score);\nconst top10 = tweets.slice(0, 10);\n\nconsole.log('🏆 Top virality scores:', top10.map(t => t.virality_score).join(', '));\n\nreturn top10.map((t, i) => ({\n  json: {\n    rank: i + 1,\n    tweet_id: t.tweet_id,\n    tweet_url: t.tweet_url,\n    virality_score: t.virality_score,\n    engagement: `${t.retweets} RT | ${t.likes} ♥ | ${t.replies} 💬`,\n    author: `@${t.author_username}`,\n    verified: t.author_verified ? '✓' : '✗',\n    preview: t.tweet_text.substring(0, 100) + '...',\n    tweetText: t.tweet_text,\n    tweetSource: 'twitter_viral',\n    sourceType: 'twitter',\n    tweetMetadata: {\n      tweet_id: t.tweet_id,\n      tweet_url: t.tweet_url,\n      virality_score: t.virality_score,\n      created_at: t.created_at\n    },\n    accountData: {\n      username: t.author_username,\n      name: t.author_name,\n      verified: t.author_verified,\n      followers: t.author_followers\n    }\n  }\n}));"
+      },
+      "id": "c5",
+      "name": "Parse Top 10",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Start Scraper", "type": "main", "index": 0}]]
+    },
+    "Start Scraper": {
+      "main": [[{"node": "Wait 90s", "type": "main", "index": 0}]]
+    },
+    "Wait 90s": {
+      "main": [[{"node": "Get Results", "type": "main", "index": 0}]]
+    },
+    "Get Results": {
+      "main": [[{"node": "Parse Top 10", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
+
