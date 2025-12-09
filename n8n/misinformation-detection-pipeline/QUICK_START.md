@@ -2,7 +2,7 @@
 
 Get your misinformation detection pipeline running in 5 minutes!
 
-**Updated:** December 9, 2025 - Now using `workflow-misinformation-detection-fixed.json` ⭐
+**Updated:** December 9, 2025 - v3.3 Simplified Single-Item Processing & Google Sheets ⭐
 
 ---
 
@@ -47,6 +47,13 @@ Access n8n at: **http://localhost:5678**
 1. Go to: https://makersuite.google.com/app/apikey
 2. Click **Get API Key**
 3. Copy the key ✅
+
+### Google Sheets API (Results Logging)
+1. In n8n, go to **Credentials** → **Add Credential**
+2. Search for **Google Sheets OAuth2 API**
+3. Click **Connect my account**
+4. Follow OAuth flow to authorize
+5. Create a Google Sheet for logging results ✅
 
 ### Supabase (WhatsApp Data Storage)
 1. Go to: https://supabase.com/

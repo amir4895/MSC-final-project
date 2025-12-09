@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
 **Last Updated:** December 9, 2025  
-**Version:** 3.1 - Fixed Twitter Integration & Individual Processing  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅
+**Version:** 3.3 - Simplified Single-Item Processing & Google Sheets Integration  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅
 
 ---
 
@@ -43,19 +43,43 @@
 
 ---
 
-## 🆕 What's New in v3.1 (December 9, 2025)
+## 🆕 What's New in v3.3 (December 9, 2025)
 
-### ✅ Fixed Issues:
-- **Manual Trigger Error** - Fixed "Cannot assign to read only property" error
-- **Item Limit Not Working** - Now respects limit setting (2, 5, 10 tweets)
-- **Duplicate Items** - Fixed duplicate processing by bypassing merge node
-- **Batch Processing** - Added "Split Out Items" node for individual tweet processing
-- **Field Mapping** - Flexible mapping for different Twitter API response formats
+### ✅ Major Simplification:
+- **Removed Loop Complexity** - No more loop nodes, simple linear flow
+- **Single Item Processing** - Process exactly 1 tweet per execution
+- **Removed Set Limit Nodes** - Simplified trigger → API flow
+- **API Optimization** - Twitter API now requests only 1 tweet (was 50)
+- **Clean Architecture** - Straightforward pipeline without loops
 
-### 🎯 New Features:
-- **Debug Logging** - Console logs for API response structure
-- **Error Handling** - Try-catch blocks with fallback values
-- **Standalone Scraper** - Separate workflow for testing Twitter API
+### 🎯 Features:
+- **Google Sheets Integration** - Automatic logging of all analysis results
+  - Each tweet/article gets its own row
+  - 25+ columns of detailed metrics
+  - Timestamp, risk level, scores, concerns, recommendations
+- **Simple Flow**: Trigger → 1 Tweet → All Agents → Google Sheets → Done
+- **No Batch Processing** - One item at a time, clean and predictable
+- **Enhanced Data Preservation** - All tweet metadata flows through correctly
+
+### 📊 Google Sheets Columns:
+- **Metadata**: Timestamp, Source, Content Preview, Full Content
+- **Risk Assessment**: Risk Level, Composite Score, Confidence
+- **Fact Check**: Classification & Score
+- **Source Credibility**: Rating & Score
+- **Account Analysis**: Authenticity & Score
+- **Recommendations**: Key Concerns, Recommended Action, Urgency, Rationale, Summary
+- **Direct Links**: 
+  - **Tweet URL** (for Twitter): Direct link to original tweet
+  - **Dataset** (for WhatsApp): Dataset name (true-news/false-news)
+  - **Supabase ID** (for WhatsApp): Article index (e.g., F600, T123)
+- **Raw Data**: Complete JSON assessment
+
+### 🔄 Pending Improvements:
+1. Agent 3 (Twitter Check) behavior optimization
+2. Fix proposal implementation
+3. Option to process multiple tweets per batch
+4. Add commenting/response functionality
+5. Pure manual testing mode
 
 ---
 
@@ -73,14 +97,48 @@ A **multi-agent AI system** that detects misinformation in:
 ### How It Works:
 
 ```
-Input (Dataset/Twitter)
+Manual Trigger / Every 4 Hours
     ↓
-6 AI Agents analyze in parallel
+Search Viral News Tweets (API: count=1)
+    ↓
+Get Top 1 Most Viral Tweet
+    ↓
+Format Input Data
+    ↓
+Parse Input Data
+    ↓
+6 AI Agents analyze (parallel)
     ↓
 Risk Assessment: HIGH/MEDIUM/LOW
     ↓
-Detailed JSON report
+Format for Google Sheets
+    ↓
+Append row in sheet
+    ↓
+DONE ✅
 ```
+
+**Key Feature:** Simple, linear flow. One tweet per execution. No loops, no batching, no complexity.
+
+---
+
+## 🔗 Direct Links to Source Data
+
+Every analysis includes direct links to the original content:
+
+### Twitter Sources
+- **Tweet URL**: `https://twitter.com/i/web/status/{tweet_id}`
+- **Example**: `https://twitter.com/i/web/status/1234567890`
+- **In Google Sheets**: Click the `tweet_url` column to view the original tweet
+
+### Dataset Sources (WhatsApp)
+- **Dataset**: Shows which dataset (true-news or false-news)
+- **Supabase ID**: Shows the article index number
+- **Format**: 
+  - `F600` = False-news dataset, article #600
+  - `T123` = True-news dataset, article #123
+- **In Google Sheets**: See `dataset` and `supabase_id` columns
+- **To test**: Send WhatsApp message "F600" or "T123" to analyze that specific article
 
 ---
 
@@ -125,46 +183,59 @@ Return risk assessment
 ```
 Manual Trigger OR Every 4 Hours
     ↓
-Set Limit (2, 5, 10 tweets)
+Manual Trigger / Every 4 Hours
     ↓
-Search Viral News Tweets (RapidAPI)
+Search Viral News Tweets (RapidAPI, count=1)
     ↓
-Add Limit to Response (pass limit forward)
+Get Top 1 Most Viral (rank by virality score)
     ↓
-Get Top N Most Viral (rank by virality score)
+Format Input Data (preserve all metadata)
     ↓
-Split Out Items (process individually) ⭐ NEW
+Parse Input Data (pass-through)
     ↓
-Format Input Data
-    ↓
-Parse Input Data
-    ↓
-Agents 1, 2, 3 analyze (parallel) - ONE TWEET AT A TIME
+Agents 1, 2, 3 analyze (parallel) - ONE TWEET
     ↓
 [Backup agents if needed]
     ↓
 Agent 4 decides (50% fact + 30% source + 20% account)
     ↓
-Return risk assessment (per tweet)
+Format for Google Sheets (extract 25+ columns)
+    ↓
+Append row in sheet (Google Sheets)
+    ↓
+DONE ✅
 ```
 
 **Key Improvements:**
-- ✅ Each tweet processed individually (not in batch)
-- ✅ Configurable limit actually works
-- ✅ No duplicate processing
-- ✅ Proper error handling
+- ✅ **No loops** - simple linear flow
+- ✅ **Single tweet processing** - one item per execution
+- ✅ All tweet metadata preserved throughout
+- ✅ Google Sheets logging with detailed metrics
+- ✅ Clean, predictable behavior
 
 ---
 
 ## 🆕 Recent Updates
 
+### v3.3 (Dec 9, 2025) - Simplified Single-Item Processing
+- **Removed all loop complexity** - clean linear flow
+- **Single tweet per execution** - no batching
+- **Removed Set Limit nodes** - simplified architecture
+- **API optimization** - requests only 1 tweet (was 50)
+- **Google Sheets integration** - automatic logging
+- 25+ columns of detailed metrics
+
+### v3.2 (Dec 9, 2025) - Loop-Based Sequential Processing & Google Sheets
+- Dual-loop architecture for sequential processing
+- Google Sheets integration
+- Fixed item multiplication issue
+- Fixed data loss in "Format Input Data" node
+
 ### v3.1 (Dec 9, 2025) - Twitter Integration Fixed
 - Fixed manual trigger error
-- Added "Split Out Items" for individual processing
+- Added individual tweet processing
 - Fixed item limit not being respected
 - Removed duplicate processing
-- Added flexible field mapping for Twitter API
-- Added debug logging
 
 ### v3.0 (Dec 8, 2025) - Advanced False News Classification
 
