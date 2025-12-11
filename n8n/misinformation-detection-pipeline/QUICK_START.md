@@ -2,7 +2,7 @@
 
 Get your misinformation detection pipeline running in 5 minutes!
 
-**Updated:** December 9, 2025 - v3.3 Simplified Single-Item Processing & Google Sheets ⭐
+**Updated:** December 11, 2025 - v4.0 Enhanced Verification & Dual-Path Architecture ⭐
 
 ---
 

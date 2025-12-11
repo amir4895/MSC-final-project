@@ -1,9 +1,9 @@
 # AI Context File - Misinformation Detection Pipeline
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
-**Last Updated:** December 9, 2025  
-**Version:** 3.3 - Simplified Single-Item Processing & Google Sheets Integration  
-**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅
+**Last Updated:** December 11, 2025  
+**Version:** 4.0 - Enhanced Verification & Dual-Path Architecture  
+**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Enhanced Prompts ✅
 
 ---
 
@@ -668,15 +668,66 @@ This is a complete paradigm shift from simple fact-checking to sophisticated fal
 **Input:** WhatsApp messages (manual) or Twitter viral tweets (automated, 1 per execution)  
 **Agents:** 6 AI agents (3 primary Groq + 2 backup Gemini + 1 decision Gemini)  
 **Output:** Risk level (HIGH/MEDIUM/LOW) + detailed analysis + Google Sheets logging  
-**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅  
+**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Enhanced Prompts ✅  
 **Cost:** ~$0.003-0.018 per item analyzed  
-**Latest:** Simplified single-item processing + Google Sheets integration (Dec 9, 2025)  
+**Latest:** Enhanced verification with date-aware fact-checking, mandatory external verification, dual-path architecture (Dec 11, 2025)  
+**Key Features:** UNVERIFIABLE classification, political bias detection, breaking news protocol, 133KB workflow  
 
 ---
 
-**Last Updated:** December 9, 2025  
-**Version:** 3.3 (Simplified Single-Item Processing & Google Sheets)  
+**Last Updated:** December 11, 2025  
+**Version:** 4.0 (Enhanced Verification & Dual-Path Architecture)  
 **Maintained by:** MSC Student (Final Project)
+
+---
+
+## 🆕 v4.0 Major Changes (December 11, 2025)
+
+### **Enhanced Agent Prompts:**
+
+#### **Agent 1 (Fact Check) - New Features:**
+- **Breaking News Verification Protocol**
+  - Extracts tweet date from metadata: `{{ $json.tweetMetadata.created_at }}`
+  - Compares to current date: `{{ $now.format('YYYY-MM-DD') }}`
+  - Requires date-appropriate sources (±30 days of tweet)
+  - New classification: **"UNVERIFIABLE"** when credible sources unavailable
+- **Source Quality Guidelines**
+  - Prioritizes: Reuters, AP, BBC, official .gov/.edu, fact-checkers
+  - Flags: blogs, unverified social media, partisan sources
+  - Requires 3+ credible sources for high confidence
+- **Date-Aware Searches**
+  - Includes month/year in web_search queries
+  - Prevents anachronistic verification (e.g., using 2020 sources for 2025 claims)
+
+#### **Agent 2 (Credibility) - New Features:**
+- **Mandatory External Verification**
+  - `sources_checked` field CANNOT be empty for Twitter
+  - Minimum 2 web_search queries required
+  - Searches: "[username] Twitter credibility", "[username] bias fact check"
+- **Political Bias Detection**
+  - Flags: "BRICS News", partisan language, geopolitical commentary
+  - Score penalties: -5 to -15 points for bias
+  - Red flag for tweets_per_day > 50
+- **Dynamic Score Adjustment**
+  - Base score from account metrics
+  - Adjusted by external reputation findings
+  - Known misinformation sources: -30 points
+
+### **Dual-Path Architecture:**
+```
+Get Top N Most Viral
+  ├─→ Enrich Twitter Account Data → Merge Enriched Data → Merge2
+  └─→ (direct) ────────────────────────────────────────→ Merge2
+                                                            ↓
+                                               Build Final Enriched Data
+```
+- **Benefits**: Original data preserved, fallback logic, separation of concerns
+- **Fixed**: HTTP node now uses `outputPropertyName: "enrichmentData"`
+
+### **Workflow Size:**
+- **v3.3**: 90KB, ~40 nodes
+- **v4.0**: 133KB, 57 nodes
+- **Reason**: Massively enhanced prompts with detailed protocols
 
 ---
 
@@ -684,8 +735,8 @@ This is a complete paradigm shift from simple fact-checking to sophisticated fal
 
 ### For Future AI Assistants:
 1. Read this entire file first
-2. Check `WORKFLOW_UPDATE_SUMMARY.md` for recent changes
-3. Review `workflow-twitter-whatsapp-combined.json` for current state
+2. Check `COMPARISON_v3_vs_v4.md` for architectural changes
+3. Review `workflow-misinformation-detection-fixed.json` for current state (v4.0)
 4. Ask clarifying questions before making changes
 
 ### For the Student:

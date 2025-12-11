@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 9, 2025  
-**Version:** 3.3 - Simplified Single-Item Processing & Google Sheets Integration  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅
+**Last Updated:** December 11, 2025  
+**Version:** 4.0 - Enhanced Verification & Dual-Path Architecture  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Enhanced Prompts ✅
 
 ---
 
@@ -25,7 +25,7 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-misinformation-detection-fixed.json** ⭐ | 38K | Fixed n8n workflow (RECOMMENDED) | Import into n8n - all fixes included |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 133K | v4.0 Enhanced workflow (RECOMMENDED) | Import into n8n - all fixes + enhancements |
 | **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
 | **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
 | **README.md** | 10K | Project overview (this file) | First time reading about project |
@@ -43,43 +43,80 @@
 
 ---
 
-## 🆕 What's New in v3.3 (December 9, 2025)
+## 🆕 What's New in v4.0 (December 11, 2025)
 
-### ✅ Major Simplification:
-- **Removed Loop Complexity** - No more loop nodes, simple linear flow
-- **Single Item Processing** - Process exactly 1 tweet per execution
-- **Removed Set Limit Nodes** - Simplified trigger → API flow
-- **API Optimization** - Twitter API now requests only 1 tweet (was 50)
-- **Clean Architecture** - Straightforward pipeline without loops
+### 🎯 Major Enhancements:
 
-### 🎯 Features:
-- **Google Sheets Integration** - Automatic logging of all analysis results
-  - Each tweet/article gets its own row
-  - 25+ columns of detailed metrics
-  - Timestamp, risk level, scores, concerns, recommendations
-- **Simple Flow**: Trigger → 1 Tweet → All Agents → Google Sheets → Done
-- **No Batch Processing** - One item at a time, clean and predictable
-- **Enhanced Data Preservation** - All tweet metadata flows through correctly
+#### **1. Enhanced Fact-Checking (Agent 1)**
+- **🚨 Breaking News Verification Protocol**
+  - Automatic date extraction from tweet metadata
+  - Time-sensitive claim verification with date-appropriate sources
+  - Prevents using outdated sources for recent claims
+  - "UNVERIFIABLE" classification when credible sources unavailable
+- **📅 Current Date Awareness**
+  - Dynamic date injection: `{{ $now.format('YYYY-MM-DD') }}`
+  - Compares tweet date vs. current date
+  - Searches with correct month/year context
+- **📰 Source Quality Guidelines**
+  - Prioritizes credible sources (Reuters, AP, BBC, official .gov/.edu)
+  - Cross-references 3+ sources when possible
+  - Flags low-credibility sources (blogs, unverified social media)
+- **⚠️ New Classification: "UNVERIFIABLE"**
+  - Used when no credible date-appropriate sources found
+  - Includes explanation of what was searched
+  - Recommendation: "REQUIRES_MORE_INVESTIGATION"
 
-### 📊 Google Sheets Columns:
+#### **2. Mandatory External Verification (Agent 2)**
+- **🔍 Required Web Searches**
+  - `sources_checked` field CANNOT be empty for Twitter accounts
+  - Minimum 2 web_search queries per analysis
+  - Searches: "[username] Twitter credibility", "[username] bias fact check"
+- **🚩 Enhanced Red Flag Detection**
+  - Political bias indicators (e.g., "BRICS News", partisan language)
+  - High activity flagging (tweets_per_day > 50)
+  - Known misinformation sources (from web searches)
+- **📊 Dynamic Score Adjustment**
+  - Base score from account metrics
+  - Adjusted based on external reputation (-30 for known misinfo)
+  - Political bias penalties (-5 to -15 points)
+
+#### **3. Dual-Path Merge Architecture**
+- **🔀 Improved Data Flow**
+  ```
+  Get Top N Most Viral
+    ├─→ Enrich Twitter Account Data (HTTP) → Merge Enriched Data → Merge2
+    └─→ (direct) ────────────────────────────────────────────→ Merge2
+                                                                  ↓
+                                                     Build Final Enriched Data
+  ```
+- **✅ Benefits**
+  - Original tweet data preserved via direct path
+  - Enrichment happens in parallel
+  - Fallback logic if enrichment fails
+  - Separation of concerns (data vs. enrichment)
+
+#### **4. Improved HTTP Configuration**
+- **Fixed:** `outputPropertyName: "enrichmentData"` added
+- **Result:** No more data loss during enrichment
+- **Benefit:** All tweet fields preserved through pipeline
+
+### 📊 Google Sheets Integration (Unchanged):
 - **Metadata**: Timestamp, Source, Content Preview, Full Content
 - **Risk Assessment**: Risk Level, Composite Score, Confidence
-- **Fact Check**: Classification & Score
-- **Source Credibility**: Rating & Score
+- **Fact Check**: Classification & Score (now includes UNVERIFIABLE)
+- **Source Credibility**: Rating & Score (with external verification)
 - **Account Analysis**: Authenticity & Score
 - **Recommendations**: Key Concerns, Recommended Action, Urgency, Rationale, Summary
-- **Direct Links**: 
-  - **Tweet URL** (for Twitter): Direct link to original tweet
-  - **Dataset** (for WhatsApp): Dataset name (true-news/false-news)
-  - **Supabase ID** (for WhatsApp): Article index (e.g., F600, T123)
+- **Direct Links**: Tweet URL / Dataset / Supabase ID
 - **Raw Data**: Complete JSON assessment
 
-### 🔄 Pending Improvements:
-1. Agent 3 (Twitter Check) behavior optimization
-2. Fix proposal implementation
-3. Option to process multiple tweets per batch
-4. Add commenting/response functionality
-5. Pure manual testing mode
+### 🔄 Key Improvements Summary:
+1. ✅ **Date-aware fact-checking** - No more anachronistic verification
+2. ✅ **Mandatory external verification** - Can't skip web searches
+3. ✅ **UNVERIFIABLE classification** - Honest when sources insufficient
+4. ✅ **Political bias detection** - Flags partisan sources
+5. ✅ **Dual-path architecture** - Better data preservation
+6. ✅ **Enhanced prompts** - 133KB workflow (was 90KB)
 
 ---
 

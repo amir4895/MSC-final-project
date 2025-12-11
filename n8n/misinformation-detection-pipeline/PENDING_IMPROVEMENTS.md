@@ -1,8 +1,8 @@
 # Pending Improvements & Future Work
 
-**Last Updated:** December 9, 2025  
-**Version:** 3.3  
-**Status:** Documented - Awaiting Implementation
+**Last Updated:** December 11, 2025  
+**Version:** 4.0  
+**Status:** Documented - Major Enhancements Implemented ✅
 
 ---
 
@@ -70,14 +70,85 @@ const userDetails = await twitterAPI.users(userId, {
 
 ---
 
-### 2. Fix Proposal Implementation 📝
+### 2. Enhanced Agent Prompts ✅ COMPLETED
 
-**Issue:** General fixes and improvements proposal pending.
+**Issue:** Agent prompts needed better verification protocols and source quality guidelines.
 
-**Details:** 
-- Review overall workflow performance
-- Identify bottlenecks
-- Optimize agent prompts
+**SOLUTION IMPLEMENTED (v4.0):**
+
+#### **Agent 1 (Fact Check) Enhancements:**
+✅ Breaking News Verification Protocol
+- Extracts tweet date from metadata
+- Requires date-appropriate sources (±30 days)
+- Prevents anachronistic verification
+- New "UNVERIFIABLE" classification
+
+✅ Source Quality Guidelines
+- Prioritizes credible sources (Reuters, AP, BBC, .gov, .edu)
+- Flags low-credibility sources
+- Requires 3+ sources for high confidence
+
+✅ Date-Aware Searches
+- Includes month/year in web_search queries
+- Compares tweet date vs. current date
+- Dynamic date injection: `{{ $now.format('YYYY-MM-DD') }}`
+
+#### **Agent 2 (Credibility) Enhancements:**
+✅ Mandatory External Verification
+- `sources_checked` CANNOT be empty
+- Minimum 2 web_search queries required
+- Searches: "[username] Twitter credibility", "[username] bias fact check"
+
+✅ Political Bias Detection
+- Flags: "BRICS News", partisan language, geopolitical commentary
+- Score penalties: -5 to -15 points
+- Red flag for tweets_per_day > 50
+
+✅ Dynamic Score Adjustment
+- Base score from account metrics
+- Adjusted by external reputation
+- Known misinformation sources: -30 points
+
+**Result:** Agents now have robust verification protocols and can't skip external checks! 🎯
+
+**Status:** ✅ COMPLETED  
+**Implemented:** December 11, 2025
+
+---
+
+### 3. Dual-Path Architecture ✅ COMPLETED
+
+**Issue:** Data loss during HTTP enrichment, no fallback logic.
+
+**SOLUTION IMPLEMENTED (v4.0):**
+
+✅ Dual-Path Merge
+```
+Get Top N Most Viral
+  ├─→ Enrich Twitter Account Data → Merge Enriched Data → Merge2
+  └─→ (direct) ────────────────────────────────────────→ Merge2
+                                                            ↓
+                                               Build Final Enriched Data
+```
+
+✅ Benefits:
+- Original data preserved via direct path
+- Enrichment happens in parallel
+- Fallback logic if enrichment fails
+- Separation of concerns
+
+✅ HTTP Node Fix:
+- Added `outputPropertyName: "enrichmentData"`
+- No more data overwriting
+
+**Result:** Robust data flow with fallback! 🎯
+
+**Status:** ✅ COMPLETED  
+**Implemented:** December 11, 2025
+
+---
+
+### 4. Batch Processing Option 📝
 - Improve error handling
 - Add validation checks
 
