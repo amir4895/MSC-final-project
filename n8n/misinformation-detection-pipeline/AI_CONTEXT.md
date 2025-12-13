@@ -1,9 +1,9 @@
 # AI Context File - Misinformation Detection Pipeline
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
-**Last Updated:** December 13, 2025  
-**Version:** 5.0 - Pre-Fetch Search System & Semantic Analysis  
-**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Pre-Fetch Search ✅
+**Last Updated:** December 14, 2025  
+**Version:** 5.1 - Safety-First Architecture & Bug Fixes  
+**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Safety Checks ✅
 
 ---
 
@@ -668,20 +668,50 @@ This is a complete paradigm shift from simple fact-checking to sophisticated fal
 **Input:** WhatsApp messages (manual) or Twitter viral tweets (automated, 1 per execution)  
 **Agents:** 6 AI agents (3 primary Groq + 2 backup Gemini + 1 decision Gemini)  
 **Output:** Risk level (HIGH/MEDIUM/LOW) + detailed analysis + Google Sheets logging  
-**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Pre-Fetch Search ✅  
+**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Safety Checks ✅  
 **Cost:** ~$0.003-0.018 per item analyzed  
-**Latest:** Pre-fetch search system with 3-tier source filtering, semantic analysis training, no URL fabrication (Dec 13, 2025)  
-**Key Features:** Google Custom Search API, 70+ credible sources, semantic guidance, mandatory verification checklist, 202KB workflow  
+**Latest:** Safety-first architecture with hate content detection, parody handling, UNVERIFIED bug fix (Dec 14, 2025)  
+**Key Features:** Safety overrides, classification-specific actions, government source weighting, HATE_CONTENT/SATIRE detection, 191KB workflow  
 
 ---
 
-**Last Updated:** December 13, 2025  
-**Version:** 5.0 (Pre-Fetch Search System & Semantic Analysis)  
+**Last Updated:** December 14, 2025  
+**Version:** 5.1 (Safety-First Architecture & Bug Fixes)  
 **Maintained by:** MSC Student (Final Project)
 
 ---
 
-## 🆕 v5.0 Major Changes (December 13, 2025)
+## 🆕 v5.1 Major Changes (December 14, 2025)
+
+### **Critical Bug Fix: UNVERIFIED ≠ LEGITIMATE**
+- **Before:** Can't verify claims → LEGITIMATE (score 100) ❌
+- **After:** Can't verify claims → UNVERIFIABLE (score 50) ✅
+
+### **Agent 1A Enhancements:**
+- **STEP 0: Safety & Parody Check** (runs FIRST)
+  - Hate content detection
+  - Incitement/coordination detection
+  - Parody disclosure check
+- **New Classifications:** HATE_CONTENT, SATIRE
+- **Enhanced Verification:** Added "Did I confuse UNVERIFIED with LEGITIMATE?" check
+
+### **Agent 4 Enhancements:**
+- **STEP 0: Safety Classification Override** (runs FIRST)
+  - HATE_CONTENT → Force HIGH risk, immediate action
+  - SATIRE → Force MEDIUM risk, add label
+- **Classification-Specific Actions:**
+  - Different handling per type (not one-size-fits-all)
+- **Government Source Weighting:** 45% (was 30%)
+- **Very Low Source Penalty:** Additional 15% penalty for score < 40
+
+### **Statistics:**
+- 191KB (was 202KB) - optimized
+- Safety-first architecture
+- Bug fixes for UNVERIFIED classification
+
+---
+
+## 📜 v5.0 Major Changes (December 13, 2025)
 
 ### **Pre-Fetch Search System:**
 

@@ -2,7 +2,7 @@
 
 Get your misinformation detection pipeline running in 5 minutes!
 
-**Updated:** December 13, 2025 - v5.0 Pre-Fetch Search System & Semantic Analysis ⭐
+**Updated:** December 14, 2025 - v5.1 Safety-First Architecture & Bug Fixes ⭐
 
 ---
 

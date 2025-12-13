@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 13, 2025  
-**Version:** 5.0 - Pre-Fetch Search System & Semantic Analysis  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Pre-Fetch Search ✅
+**Last Updated:** December 14, 2025  
+**Version:** 5.1 - Safety-First Architecture & Bug Fixes  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Safety Checks ✅
 
 ---
 
@@ -25,7 +25,7 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-misinformation-detection-fixed.json** ⭐ | 202K | v5.0 Pre-Fetch Search System (RECOMMENDED) | Import into n8n - all fixes + pre-fetch |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 191K | v5.1 Safety-First Architecture (RECOMMENDED) | Import into n8n - all fixes + safety |
 | **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
 | **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
 | **README.md** | 10K | Project overview (this file) | First time reading about project |
@@ -43,7 +43,67 @@
 
 ---
 
-## 🆕 What's New in v5.0 (December 13, 2025)
+## 🆕 What's New in v5.1 (December 14, 2025)
+
+### 🛡️ Safety-First Architecture
+
+**Critical Bug Fix:** UNVERIFIED ≠ LEGITIMATE
+- **Before:** Can't verify claims → Mark as LEGITIMATE ❌ (score 100)
+- **After:** Can't verify claims → Mark as UNVERIFIABLE ✅ (score 50)
+
+### **Agent 1A Changes:**
+
+#### **1. STEP 0: Safety & Parody Check (NEW - runs FIRST)**
+- ✅ Check for hate content/targeting
+- ✅ Check for incitement/coordination
+- ✅ Check for parody disclosure in bio
+- → These override normal fact-checking
+
+#### **2. New Classifications:**
+- ✅ **HATE_CONTENT** - for targeting, harassment, incitement
+- ✅ **SATIRE** - for disclosed parody accounts
+
+#### **3. Enhanced Pre-Output Verification:**
+- Added Question 2: "Did I confuse UNVERIFIED with LEGITIMATE?"
+- Forces agent to check before submitting
+
+### **Agent 4 Changes:**
+
+#### **1. STEP 0: Safety Classification Override (NEW - runs FIRST)**
+- **HATE_CONTENT** → Force risk = HIGH, Action = "Flag immediately"
+- **SATIRE** → Force risk = MEDIUM, Action = "Add parody label"
+
+#### **2. Classification-Specific Actions:**
+- Different handling for each classification type
+- HATE_CONTENT → immediate removal
+- SATIRE → labeling, not flagging
+- DISINFORMATION → warning label
+- LEGITIMATE → monitor only
+
+#### **3. Government Official Source Handling:**
+- ✅ Detects: government_official, government_agency
+- ✅ Increases source weight to 45% (from 30%)
+- ✅ Works for any country
+
+#### **4. Very Low Source Amplification:**
+- IF source_score < 40 → Apply additional 15% penalty
+- Helps catch known misinformation sources
+
+### **Impact:**
+
+| Issue | Before | After |
+|-------|--------|-------|
+| **Unverified claims** | LEGITIMATE ❌ | UNVERIFIABLE ✅ |
+| **Parody accounts** | HIGH risk ❌ | MEDIUM risk ✅ |
+| **Hate content** | No detection ❌ | HATE_CONTENT ✅ |
+| **Actions** | Generic ❌ | Classification-specific ✅ |
+| **Gov sources** | 30% weight | 45% weight ✅ |
+
+---
+
+## 📜 Previous Major Updates
+
+### v5.0 (December 13, 2025)
 
 ### 🎯 Major Innovation: Pre-Fetch Search System
 
