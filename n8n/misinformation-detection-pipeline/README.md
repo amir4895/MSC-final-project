@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 11, 2025  
-**Version:** 4.0 - Enhanced Verification & Dual-Path Architecture  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Enhanced Prompts ✅
+**Last Updated:** December 13, 2025  
+**Version:** 5.0 - Pre-Fetch Search System & Semantic Analysis  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Pre-Fetch Search ✅
 
 ---
 
@@ -25,7 +25,7 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-misinformation-detection-fixed.json** ⭐ | 133K | v4.0 Enhanced workflow (RECOMMENDED) | Import into n8n - all fixes + enhancements |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 202K | v5.0 Pre-Fetch Search System (RECOMMENDED) | Import into n8n - all fixes + pre-fetch |
 | **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
 | **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
 | **README.md** | 10K | Project overview (this file) | First time reading about project |
@@ -43,7 +43,64 @@
 
 ---
 
-## 🆕 What's New in v4.0 (December 11, 2025)
+## 🆕 What's New in v5.0 (December 13, 2025)
+
+### 🎯 Major Innovation: Pre-Fetch Search System
+
+**The Problem:** In v4.0, Agent 1 had to search on its own, leading to:
+- ❌ Poor search queries (LLM might search incorrectly)
+- ❌ URL fabrication (LLM inventing plausible URLs)
+- ❌ Semantic confusion ("interested" vs. "signed")
+- ❌ No source quality control
+
+**The Solution:** Pre-fetch credible sources BEFORE Agent 1 runs:
+```
+Tweet → Extract Search Terms → Google Custom Search API → Filter Credible Sources → Agent 1
+```
+
+**Benefits:**
+1. ✅ **No URL fabrication** - Agent 1 gets real URLs upfront
+2. ✅ **Better search quality** - Dedicated code nodes build smart queries
+3. ✅ **3-Tier source filtering** - Only credible sources reach Agent 1
+4. ✅ **Semantic guidance** - Agent 1 taught "interest" vs. "confirmation"
+5. ✅ **Cost reduction** - Fewer LLM web_search calls
+
+### 📊 New Components:
+
+#### **1. Pre-Fetch Search Pipeline (7 new nodes)**
+- **"1. Extract Search Terms"** - Cleans tweet, extracts 3-6 key words, adds date context
+- **"2. Search Google"** - Google Custom Search API (top 10 results)
+- **"3. Filter Credible Sources"** - 3-tier ranking, excludes social media, returns top 5
+- **"1. Build Smart Search Query"** - Extracts entities/actions, removes opinions, wider date ranges
+- **"2. Search Google1/2"** - Additional search attempts with different queries
+- **"3. Verify & Score Sources"** - Same filtering logic
+
+#### **2. Agent 1 Complete Rewrite (900+ lines)**
+- **Semantic Analysis Section** - Teaches "COMPLETED ACTION" vs. "INTEREST/SPECULATION"
+  - ✅ "Player SIGNS" = confirmation
+  - ❌ "Teams INTERESTED" = not confirmation
+  - ❌ "RUMORS" = speculation
+- **Reality Check Exercise** - Forces Agent 1 to analyze each result
+- **Absolute Rules** - No URL fabrication, interest ≠ confirmation
+- **Mandatory Pre-Output Verification** - 4-question checklist before classification
+
+#### **3. Source Credibility Tiers**
+- **Tier 1**: Reuters, AP, NYT, BBC, WSJ, WashPost (top-tier)
+- **Tier 2**: Regional papers, specialized outlets, official .gov/.edu, MLB.com, NFL.com, FIFA.com
+- **Tier 3**: ESPN, TMZ, UK tabloids (legitimate but lower standards)
+- **Excluded**: Twitter, Reddit, YouTube, Facebook
+
+### 📈 Statistics:
+- **File Size**: 202KB (was 133KB) - +52%
+- **Node Count**: 83 nodes (was 57) - +45%
+- **Agent 1 Prompt**: ~900 lines (was ~650) - +38%
+- **Credible Sources**: 70+ (was ~30) - +133%
+
+---
+
+## 📜 Previous Major Updates
+
+### v4.0 (December 11, 2025)
 
 ### 🎯 Major Enhancements:
 

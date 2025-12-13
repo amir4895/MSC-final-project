@@ -1,9 +1,9 @@
 # AI Context File - Misinformation Detection Pipeline
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
-**Last Updated:** December 11, 2025  
-**Version:** 4.0 - Enhanced Verification & Dual-Path Architecture  
-**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Enhanced Prompts ✅
+**Last Updated:** December 13, 2025  
+**Version:** 5.0 - Pre-Fetch Search System & Semantic Analysis  
+**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Pre-Fetch Search ✅
 
 ---
 
@@ -668,20 +668,63 @@ This is a complete paradigm shift from simple fact-checking to sophisticated fal
 **Input:** WhatsApp messages (manual) or Twitter viral tweets (automated, 1 per execution)  
 **Agents:** 6 AI agents (3 primary Groq + 2 backup Gemini + 1 decision Gemini)  
 **Output:** Risk level (HIGH/MEDIUM/LOW) + detailed analysis + Google Sheets logging  
-**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Enhanced Prompts ✅  
+**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Pre-Fetch Search ✅  
 **Cost:** ~$0.003-0.018 per item analyzed  
-**Latest:** Enhanced verification with date-aware fact-checking, mandatory external verification, dual-path architecture (Dec 11, 2025)  
-**Key Features:** UNVERIFIABLE classification, political bias detection, breaking news protocol, 133KB workflow  
+**Latest:** Pre-fetch search system with 3-tier source filtering, semantic analysis training, no URL fabrication (Dec 13, 2025)  
+**Key Features:** Google Custom Search API, 70+ credible sources, semantic guidance, mandatory verification checklist, 202KB workflow  
 
 ---
 
-**Last Updated:** December 11, 2025  
-**Version:** 4.0 (Enhanced Verification & Dual-Path Architecture)  
+**Last Updated:** December 13, 2025  
+**Version:** 5.0 (Pre-Fetch Search System & Semantic Analysis)  
 **Maintained by:** MSC Student (Final Project)
 
 ---
 
-## 🆕 v4.0 Major Changes (December 11, 2025)
+## 🆕 v5.0 Major Changes (December 13, 2025)
+
+### **Pre-Fetch Search System:**
+
+**Innovation:** Pre-fetch credible sources BEFORE Agent 1 runs
+
+**Flow:**
+```
+Tweet → Extract Search Terms → Google API → Filter Sources → Agent 1
+```
+
+**New Nodes:**
+- "1. Extract Search Terms" - Smart query building
+- "2. Search Google" - Google Custom Search API
+- "3. Filter Credible Sources" - 3-tier ranking system
+
+**Benefits:**
+- No URL fabrication (Agent 1 gets real URLs)
+- Better search quality (dedicated code nodes)
+- Source filtering (Tier 1/2/3 system)
+- Semantic guidance ("interest" vs. "confirmation")
+
+### **Agent 1 Complete Rewrite:**
+
+**New Sections:**
+- **Semantic Analysis** - Teaches COMPLETED vs. INTEREST/SPECULATION
+- **Reality Check Exercise** - Forces analysis of each result
+- **Absolute Rules** - No URL fabrication, interest ≠ confirmation
+- **Mandatory Pre-Output Verification** - 4-question checklist
+
+**Source Tiers:**
+- **Tier 1**: Reuters, AP, NYT, BBC (top-tier)
+- **Tier 2**: Regional, specialized, official bodies (MLB.com, NFL.com)
+- **Tier 3**: ESPN, TMZ, UK tabloids
+- **Excluded**: Twitter, Reddit, YouTube
+
+**Statistics:**
+- 202KB (was 133KB)
+- 83 nodes (was 57)
+- 900+ line Agent 1 prompt
+
+---
+
+## 📜 v4.0 Major Changes (December 11, 2025)
 
 ### **Enhanced Agent Prompts:**
 
