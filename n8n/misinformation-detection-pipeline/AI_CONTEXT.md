@@ -2,8 +2,8 @@
 
 **Purpose:** This file provides complete context for AI assistants to understand this project quickly.  
 **Last Updated:** December 14, 2025  
-**Version:** 5.1 - Safety-First Architecture & Bug Fixes  
-**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Safety Checks ✅
+**Version:** 5.2 - Prompt Optimization & Refinement  
+**Project Status:** Active Development - WhatsApp ✅ | Twitter ✅ | Google Sheets Logging ✅ | Optimized Prompts ✅
 
 ---
 
@@ -668,20 +668,39 @@ This is a complete paradigm shift from simple fact-checking to sophisticated fal
 **Input:** WhatsApp messages (manual) or Twitter viral tweets (automated, 1 per execution)  
 **Agents:** 6 AI agents (3 primary Groq + 2 backup Gemini + 1 decision Gemini)  
 **Output:** Risk level (HIGH/MEDIUM/LOW) + detailed analysis + Google Sheets logging  
-**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Safety Checks ✅  
+**Status:** WhatsApp ✅ | Twitter ✅ | Google Sheets ✅ | Optimized Prompts ✅  
 **Cost:** ~$0.003-0.018 per item analyzed  
-**Latest:** Safety-first architecture with hate content detection, parody handling, UNVERIFIED bug fix (Dec 14, 2025)  
-**Key Features:** Safety overrides, classification-specific actions, government source weighting, HATE_CONTENT/SATIRE detection, 191KB workflow  
+**Latest:** Prompt optimization with partial verification logic, source credibility override, 10% size reduction (Dec 14, 2025)  
+**Key Features:** Condensed prompts, weighted scoring, source override, safety-first architecture, 172KB workflow  
 
 ---
 
 **Last Updated:** December 14, 2025  
-**Version:** 5.1 (Safety-First Architecture & Bug Fixes)  
+**Version:** 5.2 (Prompt Optimization & Refinement)  
 **Maintained by:** MSC Student (Final Project)
 
 ---
 
-## 🆕 v5.1 Major Changes (December 14, 2025)
+## 🆕 v5.2 Major Changes (December 14, 2025)
+
+### **Prompt Optimization:**
+- **File Size:** 172KB (was 191KB) - **10% reduction**
+- **Agent 1A/4 Prompts:** Condensed by 100-300 lines each
+- **Structure:** Better organized, clearer instructions, less redundancy
+- **Readability:** Bullet points, concise format, easier to scan
+
+### **New Features:**
+- **Partial Verification Logic:** Weighted scoring for TRUE core + UNVERIFIED details
+- **Source Credibility Override:** Context labels even when facts TRUE but source LOW
+
+### **Maintained:**
+- All v5.1 functionality (safety checks, bug fixes)
+- Classification-specific handling
+- Safety-first architecture
+
+---
+
+## 📜 v5.1 Major Changes (December 14, 2025)
 
 ### **Critical Bug Fix: UNVERIFIED ≠ LEGITIMATE**
 - **Before:** Can't verify claims → LEGITIMATE (score 100) ❌

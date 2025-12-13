@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
 **Last Updated:** December 14, 2025  
-**Version:** 5.1 - Safety-First Architecture & Bug Fixes  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Safety Checks ✅
+**Version:** 5.2 - Prompt Optimization & Refinement  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Optimized Prompts ✅
 
 ---
 
@@ -25,7 +25,7 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-misinformation-detection-fixed.json** ⭐ | 191K | v5.1 Safety-First Architecture (RECOMMENDED) | Import into n8n - all fixes + safety |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 172K | v5.2 Prompt Optimization (RECOMMENDED) | Import into n8n - optimized + all features |
 | **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
 | **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
 | **README.md** | 10K | Project overview (this file) | First time reading about project |
@@ -43,7 +43,44 @@
 
 ---
 
-## 🆕 What's New in v5.1 (December 14, 2025)
+## 🆕 What's New in v5.2 (December 14, 2025)
+
+### 📝 Prompt Optimization
+
+**File Size Reduction:** 172KB (was 191KB) - **10% smaller**
+
+**Improvements:**
+- ✅ Condensed Agent 1A and Agent 4 prompts (removed redundancy)
+- ✅ Better structure and clarity (bullet points, concise instructions)
+- ✅ Maintained all v5.1 functionality (safety checks, bug fixes)
+- ✅ Improved readability (easier to understand and modify)
+
+### 🆕 New Features:
+
+#### **1. Partial Verification Logic (Agent 1A)**
+Handles tweets where core event is TRUE but details are UNVERIFIED:
+- **Weighted scoring:** Primary claim 60-70%, secondary details 30-40%
+- **Example:** "Active shooter at Brown, 6 casualties" → Core TRUE (70 pts), details UNVERIFIED (0 pts) = 70 total
+- **Classification:** BIASED_BUT_FACTUAL (not MISINFORMATION)
+- **Critical distinction:** MISINFORMATION requires core claim to be FALSE
+
+#### **2. Source Credibility Override (Agent 4)**
+Adds context even when facts are TRUE but source has low credibility:
+- **Trigger:** Source score < 60 (LOW) + deceptiveness > 40
+- **Result:** Forced MEDIUM risk floor + context label
+- **Example:** Facts verified but source has history of misinformation → Add context about source concerns
+
+### 📊 Statistics:
+- **File Size:** 172KB (was 191KB) - **-10%**
+- **Agent 1A Prompt:** ~700-800 lines (was ~900) - **-100-200 lines**
+- **Agent 4 Prompt:** ~700-800 lines (was ~1000) - **-200-300 lines**
+- **Functionality:** All v5.1 features preserved + 2 new features
+
+---
+
+## 📜 Previous Major Updates
+
+### v5.1 (December 14, 2025)
 
 ### 🛡️ Safety-First Architecture
 
