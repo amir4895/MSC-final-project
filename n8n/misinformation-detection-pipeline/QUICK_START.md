@@ -2,7 +2,7 @@
 
 Get your misinformation detection pipeline running in 5 minutes!
 
-**Updated:** December 15, 2025 - v5.3 Final Review & Dataset Integration ⭐
+**Updated:** December 17, 2025 - v5.4 Major Refactor & Simplification ⭐
 
 ---
 

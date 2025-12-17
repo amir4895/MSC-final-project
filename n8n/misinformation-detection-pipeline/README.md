@@ -1,8 +1,8 @@
 # N8N Misinformation Detection Pipeline
 
-**Last Updated:** December 15, 2025  
-**Version:** 5.3 - Final Review & Dataset Integration  
-**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Dataset Integration Complete ✅ | Production Ready ✅
+**Last Updated:** December 17, 2025  
+**Version:** 5.4 - Major Refactor & Simplification  
+**Status:** WhatsApp Active ✅ | Twitter Fixed ✅ | Google Sheets Logging ✅ | Simplified Architecture ✅ | Production Ready ✅
 
 ---
 
@@ -25,7 +25,7 @@
 
 | File | Size | Purpose | When to Use |
 |------|------|---------|-------------|
-| **workflow-misinformation-detection-fixed.json** ⭐ | 233K | v5.3 Final Review (RECOMMENDED) | Import into n8n - production ready + all features |
+| **workflow-misinformation-detection-fixed.json** ⭐ | 201K | v5.4 Major Refactor (RECOMMENDED) | Import into n8n - simplified + production ready |
 | **workflow-twitter-whatsapp-combined.json** | 36K | Legacy workflow (original) | Reference only - has known issues |
 | **workflow-viral-tweets-easy-scraper.json** | 3K | Standalone Twitter scraper | Testing Twitter API separately |
 | **README.md** | 10K | Project overview (this file) | First time reading about project |
@@ -43,7 +43,27 @@
 
 ---
 
-## 🆕 What's New in v5.3 (December 15, 2025)
+## 🆕 What's New in v5.4 (December 17, 2025)
+
+### 🎯 Major Refactor - Simplified Architecture
+
+**File Size:** 201KB (was 233KB) - **14% smaller** ✅  
+**Node Count:** 41 (was 64) - **36% reduction** ✅  
+**Status:** Production ready, cleaner architecture, easier to maintain
+
+### Key Updates:
+- ✅ **Simplified Architecture** - 36% fewer nodes, clearer data flow
+- ✅ **Agent Consolidation** - Renamed agents for clarity (Fact-Check Agent, Bot Detection Agent, etc.)
+- ✅ **Accumulator Pattern** - Robust primary/backup agent execution
+- ✅ **Single Tweet Processing** - Changed from "Top N" to "one viral tweet" (simpler, more reliable)
+- ✅ **Streamlined Triggers** - "Manual Tweet Analyze" and "Dataset Evaluator(WhatsApp)"
+- ✅ **Better Naming** - All nodes have clear, descriptive names
+
+See [CHANGES_v5.4_Major_Refactor.md](CHANGES_v5.4_Major_Refactor.md) for complete details.
+
+---
+
+## 🆕 What Was New in v5.3 (December 15, 2025)
 
 ### ✅ Production Ready - Final Review
 
