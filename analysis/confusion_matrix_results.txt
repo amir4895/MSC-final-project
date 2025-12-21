@@ -1,0 +1,76 @@
+================================================================================
+MISINFORMATION DETECTION SYSTEM - ACCURACY ANALYSIS
+================================================================================
+
+Analyzing: ~/Downloads/MSC_Project_results-CONFUSION_MATRIX-results.csv
+Generated: 2025-12-21 14:39:35
+
+✅ Loaded 20 total rows
+
+Dataset Tests (with ground truth): 20
+Real-time Tweets (no ground truth): 0
+Total Rows: 20
+
+================================================================================
+CONFUSION MATRIX
+================================================================================
+
+                    Predicted
+                Fake (FALSE)    Real (TRUE)
+              ┌─────────────┬─────────────┐
+Actual  Fake  │      10     │       0     │
+        (FALSE)│     TP      │     FN      │
+              ├─────────────┼─────────────┤
+        Real  │       0     │      10     │
+        (TRUE)│     FP      │     TN      │
+              └─────────────┴─────────────┘
+
+================================================================================
+PERFORMANCE METRICS
+================================================================================
+
+Accuracy:  100.0%  (20/20)
+           How often the system is correct overall
+
+Precision: 100.0%  (10/10)
+           When system flags as fake, how often is it correct?
+
+Recall:    100.0%  (10/10)
+           Of all actual fake news, how much did we catch?
+
+F1-Score:  100.0%
+           Harmonic mean of precision and recall
+
+================================================================================
+DETAILED BREAKDOWN
+================================================================================
+
+True Positives (TP):    10  - Correctly identified fake news
+True Negatives (TN):    10  - Correctly identified real news
+False Positives (FP):    0  - Real news incorrectly flagged as fake
+False Negatives (FN):    0  - Fake news missed (not detected)
+────────────────────────────────────────
+Total Dataset Tests:    20
+
+================================================================================
+CLASSIFICATION DISTRIBUTION (Dataset Tests Only)
+================================================================================
+
+LEGITIMATE          :   9 ( 45.0%)
+PROPAGANDA          :   9 ( 45.0%)
+BIASED_BUT_FACTUAL  :   1 (  5.0%)
+HATE_CONTENT        :   1 (  5.0%)
+
+================================================================================
+GROUND TRUTH DISTRIBUTION
+================================================================================
+
+Real News (TRUE):   10 ( 50.0%)
+Fake News (FALSE):  10 ( 50.0%)
+
+================================================================================
+ANALYSIS COMPLETE
+================================================================================
+
+Process finished with exit code 0
+
