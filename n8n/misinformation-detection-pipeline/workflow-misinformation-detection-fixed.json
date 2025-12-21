@@ -1,5 +1,5 @@
 {
-  "name": "Misinformation_Detection-17.12-final",
+  "name": "Misinformation_Detection-21.12-final",
   "nodes": [
     {
       "parameters": {
@@ -121,8 +121,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2768,
-        -448
+        2752,
+        -208
       ],
       "notesInFlow": false
     },
@@ -147,7 +147,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Safe parsing function\nfunction parseAgentJSON(output) {\n  try {\n    if (!output) return null;\n    if (typeof output === 'string') {\n      const cleaned = output.trim()\n        .replace(/^```json\\s*/i, '')\n        .replace(/^```\\s*/i, '')\n        .replace(/\\s*```$/i, '');\n      return JSON.parse(cleaned);\n    }\n    return output;\n  } catch (e) {\n    console.error('Parse error:', e.message);\n    return null;\n  }\n}\n\n// Get Agent 4 output (you definitely have this)\nconst agent4Output = $input.first().json.output;\nconst agent4 = parseAgentJSON(agent4Output);\n\n// Get original data\nconst originalData = $('Parse Input Data').first().json;\n\n// Get content\nconst content = originalData.tweetText || originalData.text || originalData.message || 'N/A';\nconst contentPreview = content.substring(0, 100);\n\n// Determine source type\nconst sourceType = originalData.sourceType || 'unknown';\nconst isRealTime = sourceType === 'twitter';\nconst isDataset = sourceType === 'dataset' || sourceType === 'whatsapp';\n\n// Dataset info\nconst datasetName = isDataset ? (originalData.dataset || 'Unknown Dataset') : 'Real-time';\nconst whatsappMessage = isDataset ? content : '';\n\n// Extract metadata\nconst timestamp = new Date().toISOString();\nconst author = originalData.accountData?.username || originalData.author || 'Unknown';\nconst tweetUrl = originalData.tweetMetadata?.tweet_url || originalData.tweet_url || 'N/A';\n\n// Extract Agent 4 data (guaranteed to exist)\nconst agent4_risk = agent4?.final_assessment?.risk_level || 'UNKNOWN';\nconst agent4_composite = agent4?.final_assessment?.composite_score || 0;\nconst agent4_confidence = agent4?.final_assessment?.confidence || 'UNKNOWN';\nconst agent4_action = agent4?.recommended_action?.primary_action || 'N/A';\nconst agent4_urgency = agent4?.recommended_action?.urgency || 'N/A';\nconst agent4_rationale = agent4?.recommended_action?.rationale || 'N/A';\n\n// Extract contributing factors from Agent 4\nconst fact_classification = agent4?.contributing_factors?.fact_check_classification || 'N/A';\nconst fact_score = agent4?.contributing_factors?.fact_check_score || 0;\nconst source_rating = agent4?.contributing_factors?.source_credibility || 'N/A';\nconst source_score = agent4?.contributing_factors?.source_score || 0;\nconst bot_assessment = agent4?.contributing_factors?.bot_risk_assessment || 'N/A';\nconst account_score = agent4?.contributing_factors?.account_authenticity_score || 0;\n\nlet dataset_name = \"\";\nlet whatsapp_message = \"\";\n    // Safely get WhatsApp node data only if it exists and has run\ntry {\n  const whatsappNode = $('WhatsApp Input Parser').first();\n  if (whatsappNode && whatsappNode.json) {\n    dataset_name = whatsappNode.json.dataset || \"\";\n    if (whatsappNode.json.datasetType && whatsappNode.json.idx !== undefined) {\n      whatsapp_message = whatsappNode.json.datasetType + \" \" + whatsappNode.json.idx;\n    }\n  }\n} catch (e) {\n  // Silently ignore if node not executed\n  console.log(\"WhatsApp Input Parser not ready yet \u2014 using empty values\");\n}\n\n// Build the return object\nconst result = {\n  json: {\n    // Section 1: Quick Overview\n    timestamp: timestamp,\n    source_type: isRealTime ? 'Real-time Tweet' : 'Dataset',\n    author: author,\n    content_preview: contentPreview,\n    risk_level: agent4_risk,\n    composite_score: agent4_composite,\n    recommended_action: agent4_action,\n    urgency: agent4_urgency,\n    tweet_url: tweetUrl,\n    \n    // Section 2: Scores (from Agent 4's summary)\n    fact_check_classification: fact_classification,\n    fact_check_score: fact_score,\n    source_credibility_rating: source_rating,\n    source_credibility_score: source_score,\n    bot_assessment: bot_assessment,\n    account_authenticity_score: account_score,\n    \n    // Section 3: Dataset Info\n    // Initialize as empty strings (your request)\n    \ndataset_name: dataset_name,\n\nwhatsapp_message: whatsapp_message,\n    // Section 4: Details\n    rationale: agent4_rationale,\n    confidence: agent4_confidence,\n    \n    // Section 5: Full Output\n    agent_1_full_output: JSON.stringify($('Order results for final validation').first().json.factCheck),\n    agent_2_full_output: JSON.stringify($('Order results for final validation').first().json.sourceCheck),\n    agent_3_full_output: JSON.stringify($('Order results for final validation').first().json.accountCheck),\n    agent_4_full_output: JSON.stringify(agent4),\n    \n    full_content: content\n  }\n};\n\n\n\n// CRITICAL: Return the result\nreturn result;"
+        "jsCode": "// Safe parsing function\nfunction parseAgentJSON(output) {\n  try {\n    if (!output) return null;\n    if (typeof output === 'string') {\n      const cleaned = output.trim()\n        .replace(/^```json\\s*/i, '')\n        .replace(/^```\\s*/i, '')\n        .replace(/\\s*```$/i, '');\n      return JSON.parse(cleaned);\n    }\n    return output;\n  } catch (e) {\n    console.error('Parse error:', e.message);\n    return null;\n  }\n}\n\n// Get Agent 4 output (you definitely have this)\nconst agent4Output = $input.first().json.output;\nconst agent4 = parseAgentJSON(agent4Output);\n\n// Get original data\nconst originalData = $('Parse Input Data').first().json;\n\n// Get content\nconst content = originalData.tweetText || originalData.text || originalData.message || 'N/A';\nconst contentPreview = content.substring(0, 100);\n\n// Determine source type\nconst sourceType = originalData.sourceType || 'unknown';\nconst isRealTime = sourceType === 'twitter';\nconst isDataset = sourceType === 'dataset' || sourceType === 'whatsapp';\n\n// Dataset info\nconst datasetName = isDataset ? (originalData.dataset || 'Unknown Dataset') : 'Real-time';\nconst whatsappMessage = isDataset ? content : '';\n\n// Safe timestamp extraction - always returns ISO format (YYYY-MM-DDTHH:MM:SS.sssZ)\nlet timestamp = new Date().toISOString(); // Default fallback\n\ntry {\n  const parseInputData = $('Parse Input Data').first().json;\n  let dateValue = null;\n  \n  // Try dataset date first (might be YYYY-MM-DD format)\n  if (parseInputData.created_at) {\n    dateValue = parseInputData.created_at;\n  }\n  // Try tweet metadata date\n  else if (parseInputData.tweetMetadata && parseInputData.tweetMetadata.created_at) {\n    dateValue = parseInputData.tweetMetadata.created_at;\n  }\n  \n  // Convert to ISO format if we found a date\n  if (dateValue) {\n    // If it's already ISO format (has 'T'), use it\n    if (dateValue.includes('T')) {\n      timestamp = dateValue;\n    } \n    // If it's YYYY-MM-DD, convert to ISO (midnight UTC)\n    else {\n      const parsedDate = new Date(dateValue + 'T00:00:00.000Z');\n      if (!isNaN(parsedDate.getTime())) {\n        timestamp = parsedDate.toISOString();\n      }\n    }\n  }\n  \n} catch (error) {\n  console.log('Could not get timestamp from Parse Input Data, using current time');\n  timestamp = new Date().toISOString();\n}\n\n// Extract metadata\nconst author = originalData.accountData?.username || originalData.author || 'Unknown';\nconst tweetUrl = originalData.tweetMetadata?.tweet_url || originalData.tweet_url || 'N/A';\n\n// Extract Agent 4 data (guaranteed to exist)\nconst agent4_risk = agent4?.final_assessment?.risk_level || 'UNKNOWN';\nconst agent4_composite = agent4?.final_assessment?.composite_score || 0;\nconst agent4_confidence = agent4?.final_assessment?.confidence || 'UNKNOWN';\nconst agent4_action = agent4?.recommended_action?.primary_action || 'N/A';\nconst agent4_urgency = agent4?.recommended_action?.urgency || 'N/A';\nconst agent4_rationale = agent4?.recommended_action?.rationale || 'N/A';\n\n// Extract contributing factors from Agent 4\nconst fact_classification = agent4?.contributing_factors?.fact_check_classification || 'N/A';\nconst fact_score = agent4?.contributing_factors?.fact_check_score || 0;\nconst source_rating = agent4?.contributing_factors?.source_credibility || 'N/A';\nconst source_score = agent4?.contributing_factors?.source_score || 0;\nconst bot_assessment = agent4?.contributing_factors?.bot_risk_assessment || 'N/A';\nconst account_score = agent4?.contributing_factors?.account_authenticity_score || 0;\n\nlet dataset_name = \"\";\nlet whatsapp_message = \"\";\n    // Safely get WhatsApp node data only if it exists and has run\ntry {\n  const whatsappNode = $('WhatsApp Input Parser').first();\n  if (whatsappNode && whatsappNode.json) {\n    dataset_name = whatsappNode.json.dataset || \"\";\n    if (whatsappNode.json.datasetType && whatsappNode.json.idx !== undefined) {\n      whatsapp_message = whatsappNode.json.datasetType + \" \" + whatsappNode.json.idx;\n    }\n  }\n} catch (e) {\n  // Silently ignore if node not executed\n  console.log(\"WhatsApp Input Parser not ready yet \u2014 using empty values\");\n}\n\n// Build the return object\nconst result = {\n  json: {\n    // Section 1: Quick Overview\n    timestamp: timestamp,\n    source_type: isRealTime ? 'Real-time Tweet' : 'Dataset',\n    author: author,\n    content_preview: contentPreview,\n    risk_level: agent4_risk,\n    composite_score: agent4_composite,\n    recommended_action: agent4_action,\n    urgency: agent4_urgency,\n    tweet_url: tweetUrl,\n    \n    // Section 2: Scores (from Agent 4's summary)\n    fact_check_classification: fact_classification,\n    fact_check_score: fact_score,\n    source_credibility_rating: source_rating,\n    source_credibility_score: source_score,\n    bot_assessment: bot_assessment,\n    account_authenticity_score: account_score,\n    \n    // Section 3: Dataset Info\n    // Initialize as empty strings (your request)\n    \ndataset_name: dataset_name,\n\nwhatsapp_message: whatsapp_message,\n    // Section 4: Details\n    rationale: agent4_rationale,\n    confidence: agent4_confidence,\n    \n    // Section 5: Full Output\n    agent_1_full_output: JSON.stringify($('Order results for final validation').first().json.factCheck),\n    agent_2_full_output: JSON.stringify($('Order results for final validation').first().json.sourceCheck),\n    agent_3_full_output: JSON.stringify($('Order results for final validation').first().json.accountCheck),\n    agent_4_full_output: JSON.stringify(agent4),\n    \n    full_content: content\n  }\n};\n\n\n\n// CRITICAL: Return the result\nreturn result;"
       },
       "id": "304f2b8c-ed40-4f16-8f96-d0e05ab311c4",
       "name": "Format for Google Sheets",
@@ -224,8 +224,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -352,
-        -480
+        -80,
+        -544
       ],
       "id": "96eb3923-7ac7-4f46-a6fe-44b0922d53db",
       "name": "WhatsApp Input Parser"
@@ -284,8 +284,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -384,
-        -64
+        -96,
+        -208
       ]
     },
     {
@@ -315,8 +315,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        96,
-        32
+        224,
+        -16
       ]
     },
     {
@@ -328,8 +328,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        288,
-        16
+        400,
+        -16
       ]
     },
     {
@@ -339,8 +339,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        656,
-        -160
+        672,
+        -224
       ],
       "id": "9b551a54-0031-42b1-bfae-8ca51ff77ae0",
       "name": "Build Final Enriched Data"
@@ -373,8 +373,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        3056,
-        -432
+        2896,
+        -320
       ],
       "id": "aa33105e-ea8b-45fe-ad7d-1653e7020572",
       "name": "Groq Chat Model1",
@@ -430,7 +430,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// FULL FINAL CODE: Title + tweetText + DATE ONLY (YYYY-MM-DD)\n\nconst items = $input.all();\nconst agentItem = items[0];\n\nlet agentString = \"\";\nif (typeof agentItem.json === 'string') {\n  agentString = agentItem.json;\n} else if (agentItem.json.output) {\n  agentString = agentItem.json.output;\n} else if (Array.isArray(agentItem.json) && agentItem.json[0]?.output) {\n  agentString = agentItem.json[0].output;\n}\n\n// Clean markdown\nagentString = agentString.replace(/```json\\s*/g, '').replace(/```\\s*/g, '').trim();\n\n// Extract tweetText safely\nconst tweetTextMatch = agentString.match(/\"tweetText\"\\s*:\\s*\"([^\"]*)\"/i);\nlet tweetText = tweetTextMatch ? tweetTextMatch[1].replace(/\\\\n/g, '\\n') : \"No tweet text found\";\n\n// Parse full JSON to get title and date\nlet parsed = { tweetText };\ntry {\n  const jsonMatch = agentString.match(/{[\\s\\S]*}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  }\n} catch (e) {\n  console.log(\"Full JSON parse failed, using regex fallback\");\n}\n\n// Get title safely \u2014 first from parsed JSON, fallback to regex\nlet title = parsed.tweetMetadata?.title || parsed.title || \"\";\n\n// Fallback: use regex if parsed title is empty (common with truncated JSON)\nif (!title || title.trim() === \"\") {\n  const titleMatch = agentString.match(/\"title\"\\s*:\\s*\"([^\"]*)\"/i);\n  if (titleMatch) {\n    title = titleMatch[1].trim();\n  }\n}\n\n\n// JOIN TITLE as bold header at the top\nlet fullTweetText = tweetText.trim(); // Trim body first\nif (title && title.trim()) {\n  fullTweetText = `**${title.trim()}**\\n\\n${fullTweetText}`;\n}\n\n// Get the date and format as YYYY-MM-DD only\nlet createdAtDateOnly = new Date().toISOString().split('T')[0]; // default today\n\nconst rawDate = parsed.tweetMetadata?.created_at || parsed.tweetMetadata?.date || parsed.date || \"\";\nif (rawDate.trim()) {\n  const parsedDate = new Date(rawDate.trim());\n  if (!isNaN(parsedDate.getTime())) {\n    createdAtDateOnly = parsedDate.toISOString().split('T')[0]; // e.g., \"2017-10-08\"\n  }\n}\n\n// Build result\nconst result = {\n  rank: \"manual_import\",\n  tweet_id: \"manual_\" + Date.now(),\n  tweet_text: fullTweetText,\n  tweet_url: \"https://twitter.com/manual/status/\" + Date.now(),\n  virality_score: 0,\n  engagement: \"0 RT | 0 \u2665 | 0 \ud83d\udcac | 0 \ud83d\udcac\",\n  author: \"@dataset\",\n  verified: \"\u2717\",\n  preview: fullTweetText.substring(0, 100) + \"...\",\n  created_at: createdAtDateOnly,  // \u2190 Only date, no time\n\n  tweetText: fullTweetText,\n  tweetSource: \"manual_import\",\n  sourceType: \"dataset\",\n\n  tweetMetadata: {\n    virality_score: 0,\n    engagement: \"0 RT | 0 \u2665 | 0 \ud83d\udcac | 0 \ud83d\udcac\",\n    author: \"@dataset\",\n    verified: \"\u2717\",\n    tweet_id: \"manual_\" + Date.now(),\n    tweet_url: \"https://twitter.com/manual/status/\" + Date.now(),\n    created_at: createdAtDateOnly  // \u2190 Only date\n  },\n\n  accountData: {\n    username: \"dataset_user\",\n    verified: false,\n    followers: 0,\n    following: 0,\n    follower_ratio: \"0\",\n    total_tweets: 0,\n    account_age_days: 0,\n    tweets_per_day: \"0\",\n    profile_completeness_score: \"0/7\",\n    has_profile_image: true,\n    has_bio: true,\n    has_location: false,\n    has_banner: true,\n    has_website: false,\n    created_at: createdAtDateOnly,  // \u2190 Only date\n    description: \"Imported from dataset\",\n    location: \"\",\n    website: \"\"\n  }\n};\n\nreturn [{ json: result }];\n"
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// FORMAT INPUT DATA - Direct from Supabase\n// Handles long text + extracts all fields properly\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nconst inputData = $input.item.json;\n\n// Extract text content (try multiple field names)\nlet tweetText = inputData.text || \n                inputData.tweetText || \n                inputData.content || \n                inputData.message || \n                \"\";\n\n// TRUNCATE if longer than 4000 characters\nconst MAX_LENGTH = 4000;\nif (tweetText.length > MAX_LENGTH) {\n  tweetText = tweetText.substring(0, MAX_LENGTH) + \" [TRUNCATED]\";\n}\n\n// Extract other fields with fallbacks\nconst title = inputData.title || \"\";\nconst dataset = inputData.dataset || inputData.dataset_name || \"\";\nconst date = inputData.date || inputData.created_at || \"\";\n\n// Format date to YYYY-MM-DD if it's a full datetime\nlet createdAtDateOnly = new Date().toISOString().split('T')[0];\nif (date) {\n  // Handle different date formats\n  if (date.includes('T')) {\n    // ISO format: \"2017-10-30T12:00:00Z\"\n    createdAtDateOnly = date.split('T')[0];\n  } else if (date.includes('-')) {\n    // Already YYYY-MM-DD\n    createdAtDateOnly = date;\n  } else {\n    // Try to parse any other format\n    const parsedDate = new Date(date);\n    if (!isNaN(parsedDate.getTime())) {\n      createdAtDateOnly = parsedDate.toISOString().split('T')[0];\n    }\n  }\n}\n\n// Build full text with title (if exists)\nlet fullTweetText = tweetText.trim();\nif (title && title.trim()) {\n  fullTweetText = `**${title.trim()}**\\n\\n${tweetText}`;\n}\n\n// Build the final result object\nconst result = {\n  rank: \"manual_import\",\n  tweet_id: \"manual_\" + Date.now(),\n  tweet_text: fullTweetText,\n  tweet_url: \"https://twitter.com/manual/status/\" + Date.now(),\n  virality_score: 0,\n  engagement: \"0 RT | 0 \u2665 | 0 \ud83d\udcac | 0 \ud83d\udcac\",\n  author: \"@dataset\",\n  verified: \"\u2717\",\n  preview: fullTweetText.substring(0, 100) + \"...\",\n  created_at: createdAtDateOnly,\n  tweetText: fullTweetText,\n  tweetSource: dataset || \"manual_import\",\n  sourceType: \"dataset\",\n  tweetMetadata: {\n    title: title,\n    virality_score: 0,\n    engagement: \"0 RT | 0 \u2665 | 0 \ud83d\udcac | 0 \ud83d\udcac\",\n    author: \"@dataset\",\n    verified: \"\u2717\",\n    tweet_id: \"manual_\" + Date.now(),\n    tweet_url: \"https://twitter.com/manual/status/\" + Date.now(),\n    created_at: createdAtDateOnly,\n    date: createdAtDateOnly\n  },\n  accountData: {\n    username: \"dataset_user\",\n    verified: false,\n    followers: 0,\n    following: 0,\n    follower_ratio: \"0\",\n    total_tweets: 0,\n    account_age_days: 0,\n    tweets_per_day: \"0\",\n    profile_completeness_score: \"0/7\",\n    has_profile_image: true,\n    has_bio: true,\n    has_location: false,\n    has_banner: true,\n    has_website: false,\n    created_at: createdAtDateOnly,\n    description: \"Imported from dataset\",\n    location: \"\",\n    website: \"\"\n  }\n};\n\nreturn { json: result };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -442,79 +442,12 @@
       "name": "Format Input Data1"
     },
     {
-      "parameters": {
-        "options": {
-          "maxOutputTokens": 2000
-        }
-      },
-      "id": "2d3b2e30-e423-44c0-a336-2c774209de54",
-      "name": "Gemini Chat Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        -32,
-        -336
-      ],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "---CREDENTIAL-ID-PLACEHOLDER---",
-          "name": "Google Gemini(PaLM) Api account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "tableId": "={{ $json.dataset }}",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "id",
-              "keyValue": "={{ $json.idx }}"
-            }
-          ]
-        }
-      },
-      "id": "81091df3-4b5d-42b1-9311-da6daa82819d",
-      "name": "Get row from Dataset (Supabase)1",
-      "type": "n8n-nodes-base.supabaseTool",
-      "typeVersion": 1,
-      "position": [
-        112,
-        -336
-      ],
-      "credentials": {
-        "supabaseApi": {
-          "id": "---CREDENTIAL-ID-PLACEHOLDER---",
-          "name": "Supabase account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "IMPORTANT: You MUST output ONE COMPLETE JSON object only. Do not cut off the response mid-way. Do not stop at accountData or any field. Always include ALL fields until the final closing }.\n\nYour output must be parsable as JSON without any truncation.\n\nExample of correct complete output:\n{\n  \"tweetText\": \"Full tweet text here...\",\n  \"tweetSource\": \"false-news\",\n  \"sourceType\": \"dataset\",\n  \"tweetMetadata\": {\n    \"title\": \"Article title\",\n    \"created_at\": \"October 30, 2017\"\n  },\n  \"accountData\": {\n    \"username\": \"dataset\",\n    \"verified\": false,\n    \"followers\": 0,\n    \"following\": 0,\n    \"follower_ratio\": \"0\",\n    \"total_tweets\": 0,\n    \"account_age_days\": 0,\n    \"tweets_per_day\": \"0\",\n    \"profile_completeness_score\": \"0/7\",\n    \"description\": \"Dataset entry\",\n    \"location\": \"\",\n    \"website\": \"\"\n  }\n}\n\nDo not add any extra text, explanations, or markdown after the JSON.",
-        "options": {
-          "systemMessage": "You are a data formatter.\n\nINPUT:\nA Supabase row is provided as JSON.\n\nINSTRUCTIONS:\n1. Read values ONLY from input JSON\n2. Map fields exactly\n3. If a field does not exist in input, use \"\"\n4. Do NOT fabricate or infer\n5. Output ONE complete JSON object",
-          "maxIterations": 3
-        }
-      },
-      "id": "1f7a8561-5923-44b1-bf1d-25b15460eda3",
-      "name": "AI Agent - Supabase Formatter1",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.6,
-      "position": [
-        -32,
-        -544
-      ]
-    },
-    {
       "parameters": {},
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -704,
-        96
+        -272,
+        -208
       ],
       "id": "0391a9db-4023-40f9-a2fb-384d025def25",
       "name": "Manual Tweet Analyze"
@@ -529,8 +462,8 @@
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
       "position": [
-        -672,
-        -480
+        -288,
+        -544
       ],
       "id": "c1d585f1-83f2-4a95-a7c2-a7dd41f64287",
       "name": "Dataset Evaluator(WhatsApp)",
@@ -551,8 +484,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -160,
-        -64
+        64,
+        -208
       ]
     },
     {
@@ -560,8 +493,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        432,
-        -160
+        512,
+        -224
       ],
       "id": "44570eef-5762-42da-8e5d-508b8d6adbf6",
       "name": "Merge enriched tweet"
@@ -636,8 +569,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
       "position": [
-        3056,
-        -688
+        2896,
+        -528
       ]
     },
     {
@@ -660,12 +593,12 @@
     },
     {
       "parameters": {
-        "jsCode": "try {\n  // Get both outputs\n  const backupOutputRaw = $input.item.json.output;\n  const primaryOutputRaw = $('Check Agent 1 Confidence').first().json.output;\n  \n  // Parse function\n  function safeParse(data) {\n    if (!data) return null;\n    if (typeof data === 'object') return data;\n    if (typeof data === 'string') {\n      try {\n        let cleaned = data.trim()\n          .replace(/^```json\\s*/i, '')\n          .replace(/^```\\s*/i, '')\n          .replace(/\\s*```$/i, '');\n        return JSON.parse(cleaned);\n      } catch (e) {\n        return null;\n      }\n    }\n    return null;\n  }\n  \n  const primary = safeParse(primaryOutputRaw);\n  const backup = safeParse(backupOutputRaw);\n  \n  if (!primary || !backup) {\n    return {\n      json: {\n        error: \"Failed to parse\",\n        primaryParsed: !!primary,\n        backupParsed: !!backup\n      }\n    };\n  }\n  \n  // Check if both agents agree on special classifications\n  const primaryClass = primary.classification;\n  const backupClass = backup.classification;\n  \n  // If both agree on UNVERIFIABLE, SATIRICAL, or CLICK-BAIT, keep it\n  if (primaryClass === backupClass && \n      ['UNVERIFIABLE', 'SATIRICAL', 'CLICK-BAIT'].includes(primaryClass)) {\n    return {\n      json: {\n        output: JSON.stringify({\n          classification: primaryClass,\n          fact_accuracy_score: Math.round(\n            ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n          ),\n          deceptiveness_score: Math.round(\n            ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n          ),\n          appears_intentional: primary.appears_intentional || backup.appears_intentional,\n          confidence: primary.confidence || backup.confidence || 'medium',\n          verified_claims: backup.verified_claims || primary.verified_claims || [],\n          false_news_patterns_detected: [...new Set([\n            ...(primary.false_news_patterns_detected || []),\n            ...(backup.false_news_patterns_detected || [])\n          ])],\n          key_omissions: [...new Set([\n            ...(primary.key_omissions || []),\n            ...(backup.key_omissions || [])\n          ])],\n          manipulation_techniques: [...new Set([\n            ...(primary.manipulation_techniques || []),\n            ...(backup.manipulation_techniques || [])\n          ])],\n          overall_assessment: `Primary: ${primary.overall_assessment || 'N/A'}. Backup: ${backup.overall_assessment || 'N/A'}. Both agents agree on ${primaryClass}.`,\n          recommendation: primary.recommendation || backup.recommendation || 'REQUIRES_MORE_INVESTIGATION',\n          dual_verification: true,\n          agent_comparison: {\n            fact_score_diff: Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50)),\n            deceptiveness_diff: Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50)),\n            avg_difference: Math.round(\n              (Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50)) +\n               Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50))) / 2\n            ),\n            primary_classification: primaryClass,\n            backup_classification: backupClass\n          }\n        })\n      }\n    };\n  }\n  \n  // Average scores\n  const avgFactScore = Math.round(\n    ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n  );\n  \n  const avgDeceptScore = Math.round(\n    ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n  );\n  \n  // Determine classification (for disagreements or standard classifications)\n  let finalClassification;\n  const avgIntent = primary.appears_intentional || backup.appears_intentional;\n  \n  // Check if either agent said UNVERIFIABLE\n  if (primaryClass === 'UNVERIFIABLE' || backupClass === 'UNVERIFIABLE') {\n    finalClassification = 'UNVERIFIABLE';\n  }\n  // Check for SATIRICAL\n  else if (primaryClass === 'SATIRICAL' || backupClass === 'SATIRICAL') {\n    finalClassification = 'SATIRICAL';\n  }\n  // Check for CLICK-BAIT\n  else if (primaryClass === 'CLICK-BAIT' || backupClass === 'CLICK-BAIT') {\n    finalClassification = 'CLICK-BAIT';\n  }\n  // Standard classification logic\n  else if (avgFactScore < 40) {\n    finalClassification = avgIntent ? 'DISINFORMATION' : 'MISINFORMATION';\n  } else if (avgFactScore >= 60 && avgDeceptScore > 60) {\n    finalClassification = 'PROPAGANDA';\n  } else if (avgFactScore > 80 && avgDeceptScore < 30) {\n    finalClassification = 'LEGITIMATE';\n  } else {\n    finalClassification = 'BIASED_BUT_FACTUAL';\n  }\n  \n  // Calculate confidence\n  const factDiff = Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50));\n  const deceptDiff = Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50));\n  const avgDiff = (factDiff + deceptDiff) / 2;\n  \n  const finalConfidence = avgDiff <= 10 ? 'high' : avgDiff <= 20 ? 'medium' : 'low';\n  \n  // Recommendation\n  let recommendation;\n  if (finalClassification === 'UNVERIFIABLE') {\n    recommendation = 'REQUIRES_MORE_INVESTIGATION';\n  } else if (finalClassification === 'PROPAGANDA' || finalClassification === 'DISINFORMATION') {\n    recommendation = 'FLAG_AS_FALSE_NEWS';\n  } else if (finalClassification === 'MISINFORMATION' || finalClassification === 'BIASED_BUT_FACTUAL') {\n    recommendation = 'LABEL_AS_BIASED';\n  } else {\n    recommendation = 'NO_ACTION_NEEDED';\n  }\n  \n  // Merge arrays\n  const mergedPatterns = [...new Set([\n    ...(primary.false_news_patterns_detected || []),\n    ...(backup.false_news_patterns_detected || [])\n  ])];\n  \n  const mergedOmissions = [...new Set([\n    ...(primary.key_omissions || []),\n    ...(backup.key_omissions || [])\n  ])];\n  \n  const mergedTechniques = [...new Set([\n    ...(primary.manipulation_techniques || []),\n    ...(backup.manipulation_techniques || [])\n  ])];\n  \n  // Return merged result\n  return {\n    json: {\n      output: JSON.stringify({\n        classification: finalClassification,\n        fact_accuracy_score: avgFactScore,\n        deceptiveness_score: avgDeceptScore,\n        appears_intentional: avgIntent,\n        confidence: finalConfidence,\n        verified_claims: backup.verified_claims || primary.verified_claims || [],\n        false_news_patterns_detected: mergedPatterns,\n        key_omissions: mergedOmissions,\n        manipulation_techniques: mergedTechniques,\n        overall_assessment: `Primary: ${primary.overall_assessment || 'N/A'}. Backup: ${backup.overall_assessment || 'N/A'}. Agreement: ${avgDiff <= 10 ? 'Strong' : 'Moderate'} (diff: ${Math.round(avgDiff)})`,\n        recommendation: recommendation,\n        dual_verification: true,\n        agent_comparison: {\n          fact_score_diff: factDiff,\n          deceptiveness_diff: deceptDiff,\n          avg_difference: Math.round(avgDiff),\n          primary_classification: primaryClass,\n          backup_classification: backupClass\n        }\n      })\n    }\n  };\n  \n} catch (error) {\n  return {\n    json: {\n      error: error.message,\n      stack: error.stack\n    }\n  };\n}"
+        "jsCode": "try {\n  // Get both outputs\n  const backupOutputRaw = $input.item.json.output;\n  const primaryOutputRaw = $('Check Agent 1 Confidence').first().json.output;\n  \n  // Parse function\n  function safeParse(data) {\n    if (!data) return null;\n    if (typeof data === 'object') return data;\n    if (typeof data === 'string') {\n      try {\n        let cleaned = data.trim()\n          .replace(/^```json\\s*/i, '')\n          .replace(/^```\\s*/i, '')\n          .replace(/\\s*```$/i, '');\n        return JSON.parse(cleaned);\n      } catch (e) {\n        console.error('Parse error:', e.message);\n        return null;\n      }\n    }\n    return null;\n  }\n  \n  const primary = safeParse(primaryOutputRaw);\n  const backupRaw = safeParse(backupOutputRaw);\n  \n  if (!primary) {\n    return {\n      json: {\n        error: \"Primary failed to parse\",\n        primaryParsed: false,\n        backupParsed: !!backupRaw\n      }\n    };\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // HANDLE BACKUP'S NESTED STRUCTURE\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  let backup = null;\n  \n  if (backupRaw) {\n    // Check if backup has nested structure\n    if (backupRaw.backup_assessment) {\n      // Extract from nested structure\n      backup = {\n        classification: backupRaw.backup_assessment.classification,\n        fact_accuracy_score: backupRaw.backup_assessment.fact_accuracy_score,\n        deceptiveness_score: backupRaw.backup_assessment.deceptiveness_score,\n        appears_intentional: backupRaw.backup_assessment.appears_intentional,\n        confidence: backupRaw.backup_assessment.confidence,\n        // Keep the recommendation for reference\n        recommendation: backupRaw.recommendation\n      };\n    } else {\n      // Backup has flat structure (shouldn't happen, but handle it)\n      backup = backupRaw;\n    }\n  }\n  \n  if (!backup) {\n    // If backup failed to parse, just use primary\n    console.log('\u26a0\ufe0f Backup failed to parse, using primary only');\n    return {\n      json: {\n        output: JSON.stringify(primary)\n      }\n    };\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // BOTH PARSED SUCCESSFULLY - MERGE THEM\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  console.log('\u2705 Primary classification:', primary.classification);\n  console.log('\u2705 Backup classification:', backup.classification);\n  \n  // Check if both agree\n  const primaryClass = primary.classification;\n  const backupClass = backup.classification;\n  \n  // If both agree on special classifications, keep it\n  if (primaryClass === backupClass && \n      ['UNVERIFIABLE', 'SATIRE', 'HATE_CONTENT'].includes(primaryClass)) {\n    console.log('\u2705 Both agree on', primaryClass);\n    return {\n      json: {\n        output: JSON.stringify({\n          classification: primaryClass,\n          fact_accuracy_score: Math.round(\n            ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n          ),\n          deceptiveness_score: Math.round(\n            ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n          ),\n          appears_intentional: primary.appears_intentional || backup.appears_intentional,\n          confidence: primary.confidence || backup.confidence || 'medium',\n          verified_claims: primary.verified_claims || [],\n          false_news_patterns_detected: primary.false_news_patterns_detected || [],\n          key_omissions: primary.key_omissions || [],\n          manipulation_techniques: primary.manipulation_techniques || [],\n          overall_assessment: `Primary: ${primary.overall_assessment || 'N/A'}. Backup: ${backup.recommendation?.reasoning || 'N/A'}. Both agents agree on ${primaryClass}.`,\n          recommendation: primary.recommendation || 'REQUIRES_MORE_INVESTIGATION',\n          dual_verification: true\n        })\n      }\n    };\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // SPECIAL CASE: Both agree on PROPAGANDA (or other classes)\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  if (primaryClass === backupClass) {\n    console.log('\u2705 Both agree on', primaryClass);\n    \n    // Average the scores\n    const avgFactScore = Math.round(\n      ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n    );\n    \n    const avgDeceptScore = Math.round(\n      ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n    );\n    \n    return {\n      json: {\n        output: JSON.stringify({\n          classification: primaryClass,  // They agree!\n          fact_accuracy_score: avgFactScore,\n          deceptiveness_score: avgDeceptScore,\n          appears_intentional: primary.appears_intentional || backup.appears_intentional,\n          confidence: primary.confidence || backup.confidence || 'high',\n          verified_claims: primary.verified_claims || [],\n          false_news_patterns_detected: primary.false_news_patterns_detected || [],\n          key_omissions: primary.key_omissions || [],\n          manipulation_techniques: primary.manipulation_techniques || [],\n          overall_assessment: `Primary: ${primary.overall_assessment || 'N/A'}. Backup: ${backup.recommendation?.reasoning || 'N/A'}. Both agents agree on ${primaryClass}. Average scores: Fact=${avgFactScore}, Deceptiveness=${avgDeceptScore}.`,\n          recommendation: primary.recommendation || backup.recommendation?.action || 'LABEL_AS_BIASED',\n          dual_verification: true,\n          agent_comparison: {\n            fact_score_diff: Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50)),\n            deceptiveness_diff: Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50)),\n            agreement: 'FULL'\n          }\n        })\n      }\n    };\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // DISAGREEMENT - Average and reclassify\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  console.log('\u26a0\ufe0f Agents disagree:', primaryClass, 'vs', backupClass);\n  \n  // Average scores\n  const avgFactScore = Math.round(\n    ((primary.fact_accuracy_score || 50) + (backup.fact_accuracy_score || 50)) / 2\n  );\n  \n  const avgDeceptScore = Math.round(\n    ((primary.deceptiveness_score || 50) + (backup.deceptiveness_score || 50)) / 2\n  );\n  \n  // Determine classification from averaged scores\n  let finalClassification;\n  const avgIntent = primary.appears_intentional || backup.appears_intentional;\n  \n  if (avgFactScore < 40) {\n    finalClassification = avgIntent ? 'DISINFORMATION' : 'MISINFORMATION';\n  } else if (avgFactScore >= 60 && avgDeceptScore > 60) {\n    finalClassification = 'PROPAGANDA';\n  } else if (avgFactScore > 80 && avgDeceptScore < 30) {\n    finalClassification = 'LEGITIMATE';\n  } else if (avgFactScore >= 50 && avgFactScore < 80) {\n    finalClassification = 'BIASED_BUT_FACTUAL';\n  } else {\n    finalClassification = 'UNVERIFIABLE';\n  }\n  \n  return {\n    json: {\n      output: JSON.stringify({\n        classification: finalClassification,\n        fact_accuracy_score: avgFactScore,\n        deceptiveness_score: avgDeceptScore,\n        appears_intentional: avgIntent,\n        confidence: 'medium',\n        verified_claims: primary.verified_claims || backup.verified_claims || [],\n        false_news_patterns_detected: [...new Set([\n          ...(primary.false_news_patterns_detected || []),\n          ...(backup.false_news_patterns_detected || [])\n        ])],\n        key_omissions: [...new Set([\n          ...(primary.key_omissions || []),\n          ...(backup.key_omissions || [])\n        ])],\n        manipulation_techniques: [...new Set([\n          ...(primary.manipulation_techniques || []),\n          ...(backup.manipulation_techniques || [])\n        ])],\n        overall_assessment: `Primary: ${primaryClass}. Backup: ${backupClass}. Disagreement resolved to ${finalClassification} with averaged scores.`,\n        recommendation: primary.recommendation || backup.recommendation?.action || 'REQUIRES_MORE_INVESTIGATION',\n        dual_verification: true,\n        agent_comparison: {\n          fact_score_diff: Math.abs((primary.fact_accuracy_score || 50) - (backup.fact_accuracy_score || 50)),\n          deceptiveness_diff: Math.abs((primary.deceptiveness_score || 50) - (backup.deceptiveness_score || 50)),\n          primary_classification: primaryClass,\n          backup_classification: backupClass,\n          agreement: 'DISAGREEMENT'\n        }\n      })\n    }\n  };\n  \n} catch (error) {\n  return {\n    json: {\n      error: error.message,\n      stack: error.stack\n    }\n  };\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3376,
+        3408,
         -1088
       ],
       "id": "4ed31a3e-54c2-4cb5-8be3-386160a829d2",
@@ -680,8 +613,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3360,
-        -688
+        3216,
+        -528
       ]
     },
     {
@@ -762,7 +695,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1360,
+        1376,
         -720
       ],
       "id": "dadd3c2f-0a16-4f19-83c3-01253c8be7ee"
@@ -775,8 +708,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1504,
-        -704
+        1536,
+        -720
       ],
       "id": "7ac412e5-097f-4aeb-9031-14debb4eeece"
     },
@@ -1051,7 +984,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        5296,
+        5424,
         -592
       ],
       "id": "717801b8-f5a6-4a41-8b3a-cd9b0c405cd4",
@@ -1060,6 +993,47 @@
         "googleSheetsOAuth2Api": {
           "id": "---CREDENTIAL-ID-PLACEHOLDER---",
           "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// CALCULATE ACCURACY NODE - JavaScript Code\n// Configuration: Option B (Lenient), Option A (Exclude UNVERIFIABLE)\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\ntry {\n  // Get the formatted data from previous node\n  const formattedData = $input.item.json;\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // STEP 1: DETERMINE GROUND TRUTH\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  let ground_truth = \"UNKNOWN\";\n  \n  // Check if this is a dataset test (WhatsApp message)\n  if (formattedData.dataset_name && formattedData.whatsapp_message) {\n    const whatsappMsg = formattedData.whatsapp_message.toString().trim();\n    \n    // Extract T or F prefix from format like \"T 600\" or \"F 600\"\n    if (whatsappMsg.match(/^T\\s*\\d+/i)) {\n      ground_truth = \"TRUE\";\n    } else if (whatsappMsg.match(/^F\\s*\\d+/i)) {\n      ground_truth = \"FALSE\";\n    }\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // STEP 2: DETERMINE PREDICTED LABEL\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  const classification = formattedData.fact_check_classification;\n  let predicted_label = \"UNKNOWN\";\n  \n  if (classification) {\n    // OPTION B MAPPING (Lenient):\n    // TRUE = LEGITIMATE + BIASED_BUT_FACTUAL\n    if (classification === \"LEGITIMATE\" || classification === \"BIASED_BUT_FACTUAL\") {\n      predicted_label = \"TRUE\";\n    } \n    // FALSE = Everything else\n    else if ([\n      \"PROPAGANDA\",\n      \"MISINFORMATION\", \n      \"DISINFORMATION\",\n      \"UNVERIFIABLE\",\n      \"SATIRE\",\n      \"HATE_CONTENT\"\n    ].includes(classification)) {\n      predicted_label = \"FALSE\";\n    }\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // STEP 3: CALCULATE CORRECTNESS\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  let is_correct = \"N/A\";\n  let match_type = \"N/A\";\n  let accuracy_notes = \"\";\n  \n  if (ground_truth === \"UNKNOWN\") {\n    // OPTION A: Exclude from accuracy (real-time tweets)\n    is_correct = \"N/A\";\n    match_type = \"N/A\";\n    accuracy_notes = \"Real-time tweet - no ground truth available for accuracy calculation\";\n    \n  } else {\n    // We have ground truth (dataset test)\n    \n    if (predicted_label === ground_truth) {\n      // \u2705 CORRECT PREDICTION\n      is_correct = \"TRUE\";\n      \n      // Determine which type of correct prediction\n      if (ground_truth === \"FALSE\") {\n        // TP: Correctly identified fake news\n        match_type = \"TP\";\n        accuracy_notes = \"TRUE POSITIVE: Correctly identified as fake news\";\n      } else {\n        // TN: Correctly identified real news\n        match_type = \"TN\";\n        accuracy_notes = \"TRUE NEGATIVE: Correctly identified as real news\";\n      }\n      \n    } else {\n      // \u274c INCORRECT PREDICTION\n      is_correct = \"FALSE\";\n      \n      // Determine which type of error\n      if (ground_truth === \"TRUE\" && predicted_label === \"FALSE\") {\n        // FP: False alarm - flagged real news as fake\n        match_type = \"FP\";\n        accuracy_notes = \"FALSE POSITIVE (False Alarm): Incorrectly flagged real news as fake. Classification: \" + classification;\n      } else if (ground_truth === \"FALSE\" && predicted_label === \"TRUE\") {\n        // FN: Missed fake news\n        match_type = \"FN\";\n        accuracy_notes = \"FALSE NEGATIVE (Missed Detection): Failed to identify fake news. Classification: \" + classification;\n      }\n    }\n  }\n  \n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  // STEP 4: RETURN ENHANCED DATA\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  \n  return {\n    json: {\n      // Spread all existing fields\n      ...formattedData,\n      \n      // Add new accuracy fields\n      ground_truth: ground_truth,\n      predicted_label: predicted_label,\n      is_correct: is_correct,\n      match_type: match_type,\n      accuracy_notes: accuracy_notes\n    }\n  };\n  \n} catch (error) {\n  // Error handling\n  return {\n    json: {\n      error: \"Accuracy calculation failed: \" + error.message,\n      stack: error.stack,\n      // Pass through original data\n      ...$input.item.json\n    }\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5232,
+        -592
+      ],
+      "id": "904d50a4-25f9-4774-b178-d39569ee8a20",
+      "name": "Calculate Accuracy"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "={{ $json.dataset }}",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.idx }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -544
+      ],
+      "id": "b1b58bfa-fc7e-4d3b-8880-7bb8a7e1c29f",
+      "name": "Get a data from dataset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "---CREDENTIAL-ID-PLACEHOLDER---",
+          "name": "Supabase account"
         }
       }
     }
@@ -1138,7 +1112,7 @@
       "main": [
         [
           {
-            "node": "Log to Google Sheets",
+            "node": "Calculate Accuracy",
             "type": "main",
             "index": 0
           }
@@ -1182,7 +1156,7 @@
       "main": [
         [
           {
-            "node": "AI Agent - Supabase Formatter1",
+            "node": "Get a data from dataset",
             "type": "main",
             "index": 0
           }
@@ -1309,39 +1283,6 @@
         [
           {
             "node": "Format Input Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent - Supabase Formatter1",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row from Dataset (Supabase)1": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent - Supabase Formatter1",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent - Supabase Formatter1": {
-      "main": [
-        [
-          {
-            "node": "Format Input Data1",
             "type": "main",
             "index": 0
           }
@@ -1539,13 +1480,35 @@
           }
         ]
       ]
+    },
+    "Calculate Accuracy": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a data from dataset": {
+      "main": [
+        [
+          {
+            "node": "Format Input Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9148a51c-5827-4fbe-b646-faccd7b452fb",
+  "versionId": "2040b36e-952c-44c8-b443-1d30c5f67aaf",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "121d8e9b68760b992e165904fd6888a7f1a58413d4a67cf93ef67eae09ef6b3b"
