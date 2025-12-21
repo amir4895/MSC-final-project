@@ -55,7 +55,7 @@ Tweet → Extract Search Terms → Google Custom Search API → Filter Credible 
 2. **"2. Search Google"** (HTTP Request)
    - Calls Google Custom Search API
    - Returns top 10 results
-   - Uses API key: `AIzaSyBCm6e_2I1SN1IZyfUNWv9GgV3eIjFnyUE`
+   - Uses API key: `---GOOGLE-API-KEY-PLACEHOLDER---`
    - Custom Search Engine ID: `a16574f588c3a47df`
 
 3. **"3. Filter Credible Sources"** (Code)
